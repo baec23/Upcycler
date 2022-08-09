@@ -2,7 +2,9 @@ package com.baec23.upcycler.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
@@ -28,16 +30,20 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 100.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 50.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceAround
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
         Image(
             painter = bannerPainter,
             contentDescription = bannerContentDescription
         )
         Box() {
-            Column() {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 OutlinedTextField(
                     value = userId,
                     label = {
@@ -71,18 +77,19 @@ fun LoginScreen(
                         password = it
                     }
                 )
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(onClick = { /*TODO*/ }) {
-                Text(text = "Login")
-            }
-            Button(onClick = { /*TODO*/ }) {
-                Text(text = "Sign Up")
+                Spacer(modifier = Modifier.height(30.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = { /*TODO*/ }) {
+                        Text(text = "Login")
+                    }
+                    Button(onClick = { /*TODO*/ }) {
+                        Text(text = "Sign Up")
+                    }
+                }
             }
         }
     }
