@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "739955178671",
+    "project_id": "upcycler-c570d",
+    "storage_bucket": "upcycler-c570d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739955178671:android:3dd8fac987aa965e89285a",
+        "android_client_info": {
+          "package_name": "com.baec23.upcycler"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "739955178671-ep4vdbu4esn2pf7iv0hgcb06e1nhtmo5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChe-QCtHQ23t6oMbxKgvHYMMpte3h2c4c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "739955178671-ep4vdbu4esn2pf7iv0hgcb06e1nhtmo5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
