@@ -3,36 +3,43 @@ package com.baec23.upcycler
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import com.baec23.upcycler.ui.LoginScreen
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.baec23.upcycler.ui.login.LoginScreen
+import com.baec23.upcycler.ui.main.MainScreen
+import com.baec23.upcycler.ui.signup.SignUpScreen
 import com.baec23.upcycler.ui.theme.UpcyclerTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         setContent {
             UpcyclerTheme {
-                val bannerPainter = painterResource(id = R.drawable.upcycling_banner2)
-                LoginScreen(bannerPainter = bannerPainter, bannerContentDescription = "Upcycler Banner")
+                val navController = rememberNavController()
+                NavHost(
+                    navController = navController,
+                    startDestination = "login_screen"
+                ) {
+                    composable("login_screen") {
+                        LoginScreen(
+                            navController = navController
+                        )
+                    }
+                    composable("signup_screen"){
+                        SignUpScreen(navController = navController)
+                    }
+                    composable("main_screen") {
+                        MainScreen()
+                    }
+                }
             }
         }
+
     }
 }
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
 
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    UpcyclerTheme {
-        Greeting("Android")
-    }
-}
