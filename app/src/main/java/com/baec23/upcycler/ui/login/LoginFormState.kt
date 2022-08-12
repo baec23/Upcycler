@@ -6,4 +6,3 @@ data class LoginFormState(
     val loginIdErrorMessage: String = "",
     val passwordErrorMessage: String = ""
 )
-

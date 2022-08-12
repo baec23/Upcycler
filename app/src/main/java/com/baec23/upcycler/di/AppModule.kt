@@ -1,5 +1,6 @@
 package com.baec23.upcycler.di
 
+import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -14,8 +15,13 @@ import javax.inject.Singleton
 object AppModule {
     @Singleton
     @Provides
-    fun provideUserRepository(firestore: FirebaseFirestore, storage: FirebaseStorage) =
-        UserRepository(firestore, storage)
+    fun provideUserRepository(firestore: FirebaseFirestore) =
+        UserRepository(firestore)
+
+    @Singleton
+    @Provides
+    fun provideJobRepository(firestore: FirebaseFirestore, storage: FirebaseStorage) =
+        JobRepository(firestore, storage)
 
     @Singleton
     @Provides

@@ -12,17 +12,16 @@ import javax.inject.Inject
 
 @ActivityScoped
 class UserRepository @Inject constructor(
-    private val firestore: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val firestore: FirebaseFirestore
 ) {
 
     private val usersReference: CollectionReference = firestore.collection("users")
     private val keyStoreReference: DocumentReference =
         firestore.collection("keys").document("users")
-    private var currUser: User? = null
+
+    var currUser: User? = null
 
     suspend fun tryLogin(loginId: String, password: String): Result<User> {
-        delay(2000L)
         val documentSnapshots = usersReference
             .whereEqualTo("loginId", loginId)
             .get()
@@ -41,7 +40,6 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun trySignup(loginId: String, password: String, displayName: String): Result<String> {
-        delay(2000L)
         if (doesDuplicateIdExist(loginId))
             return Result.failure(Exception("LoginId: $loginId Already Exists"))
         val userId = getNewKey()
