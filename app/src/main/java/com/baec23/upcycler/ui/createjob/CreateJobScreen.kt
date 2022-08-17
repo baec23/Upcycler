@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.baec23.upcycler.ui.createjob
 
 import android.graphics.Bitmap
@@ -6,33 +8,30 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.baec23.upcycler.Screen
-import com.baec23.upcycler.ui.AppEvent
-import com.baec23.upcycler.ui.AppEventChannel
+import coil.compose.rememberAsyncImagePainter
 import com.baec23.upcycler.ui.shared.ProgressSpinner
+import com.baec23.upcycler.util.ScreenState
 
 @Composable
 fun CreateJobScreen(
-    viewModel: CreateJobViewModel = hiltViewModel(),
-    appChannel: AppEventChannel
+    viewModel: CreateJobViewModel = hiltViewModel()
 ) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
@@ -64,32 +63,52 @@ fun CreateJobScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(vertical = 20.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        JobImagesList(addedBitmaps)
-        AddImageButton { launcher.launch("image/*") }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+        ) {
+            AddImageButton(
+                modifier = Modifier
+                    .width(100.dp)
+                    .aspectRatio(1f)
+            ) {
+                launcher.launch("image/*")
+            }
+            JobImagesList(addedBitmaps)
+        }
+        Spacer(modifier = Modifier.height(25.dp))
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(horizontal = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             TitleTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = jobTitle,
                 onValueChange = { viewModel.onEvent(CreateJobUiEvent.TitleChanged(it)) })
+            Spacer(modifier = Modifier.height(25.dp))
             DetailsTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
                 value = jobDetails,
                 onValueChange = { viewModel.onEvent(CreateJobUiEvent.DetailsChanged(it)) })
-            Button(onClick = { viewModel.onEvent(CreateJobUiEvent.CreateJobPressed) }) {
+            Spacer(modifier = Modifier.height(25.dp))
+            Button(onClick = { viewModel.onEvent(CreateJobUiEvent.SubmitPressed) }) {
                 Text(text = "Create")
             }
         }
     }
 
     when (screenState) {
-        CreateJobScreenState.Busy -> ProgressSpinner()
-        is CreateJobScreenState.Error -> appChannel.fireEvent(AppEvent.ShowSnackbar((screenState as CreateJobScreenState.Error).errorMessage))
-        CreateJobScreenState.JobCreated -> appChannel.fireEvent(AppEvent.NavigateTo(Screen.MainScreen))
-        CreateJobScreenState.WaitingForInput -> {}
+        ScreenState.Busy -> ProgressSpinner()
+        ScreenState.Ready -> {}
     }
 }
 
@@ -99,11 +118,11 @@ fun JobImagesList(
 ) {
     LazyRow(content = {
         items(count = bitmaps.size) {
-            Image(
-                bitmap = bitmaps[it].asImageBitmap(),
-                contentDescription = "Image_$it",
-                contentScale = ContentScale.FillWidth,
-                modifier = Modifier.size(200.dp)
+            AddedImage(
+                painter = rememberAsyncImagePainter(bitmaps[it]),
+                modifier = Modifier
+                    .width(100.dp)
+                    .aspectRatio(1f)
             )
         }
     })
@@ -111,17 +130,68 @@ fun JobImagesList(
 
 @Composable
 fun AddImageButton(
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Button(onClick = {
-        onClick()
-    }) {
-        Text(text = "Add Image from Gallery")
+    ImageCard(
+        modifier = modifier,
+        onClick = onClick,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(25.dp),
+            contentAlignment = Alignment.Center
+        )
+        {
+            Icon(
+                modifier = Modifier.fillMaxSize(),
+                imageVector = Icons.Default.AddCircle,
+                contentDescription = "Add Image",
+                tint = Color.DarkGray
+            )
+        }
+    }
+}
+
+@Composable
+fun AddedImage(
+    modifier: Modifier = Modifier,
+    painter: Painter,
+) {
+    ImageCard(
+        modifier = modifier,
+    ) {
+        Image(
+            painter = painter,
+            contentDescription = "Added Image",
+            contentScale = ContentScale.FillWidth
+        )
+    }
+}
+
+@Composable
+fun ImageCard(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.LightGray,
+    onClick: () -> Unit = {},
+    Content: @Composable () -> Unit,
+) {
+    Card(
+        modifier = modifier
+            .padding(5.dp),
+        backgroundColor = backgroundColor,
+        shape = RoundedCornerShape(5.dp),
+        elevation = 2.dp,
+        onClick = onClick
+    ) {
+        Content()
     }
 }
 
 @Composable
 fun TitleTextField(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit
 ) {
@@ -129,18 +199,25 @@ fun TitleTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier,
+        label = {
+            Text(text = "Title")
+        }
     )
 }
 
 @Composable
 fun DetailsTextField(
+    modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit
 ) {
     TextField(
+        modifier = modifier,
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxSize()
+        label = {
+            Text(text = "Details")
+        }
     )
 }

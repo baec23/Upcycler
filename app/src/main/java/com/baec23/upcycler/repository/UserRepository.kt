@@ -4,9 +4,7 @@ import com.baec23.upcycler.model.User
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.scopes.ActivityScoped
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -53,6 +51,16 @@ class UserRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(Exception())
         }
+    }
+
+    suspend fun getUserById(userId: Int): Result<User> {
+        val result = usersReference.whereEqualTo("id", userId).get().await().documents
+        if(result.size == 1){
+            val toReturn = result[0].toObject(User::class.java)
+            if(toReturn != null)
+                return Result.success(toReturn)
+        }
+        return Result.failure(Exception("Failed to load user!"))
     }
 
     private suspend fun doesDuplicateIdExist(loginId: String): Boolean {

@@ -23,15 +23,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.baec23.upcycler.R
-import com.baec23.upcycler.Screen
-import com.baec23.upcycler.ui.AppEvent
-import com.baec23.upcycler.ui.AppEventChannel
 import com.baec23.upcycler.ui.shared.ProgressSpinner
+import com.baec23.upcycler.util.ScreenState
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = hiltViewModel(),
-    appChannel: AppEventChannel
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val screenState by viewModel.loginScreenState
     val formState by viewModel.loginFormState
@@ -101,12 +98,12 @@ fun LoginScreen(
                 ) {
                     Button(
                         onClick = { viewModel.onEvent(LoginUiEvent.LoginPressed) },
-                        enabled = viewModel.canLogIn.value
+                        enabled = viewModel.canLogin.value
                     ) {
                         Text(text = "Login")
                     }
                     Button(
-                        onClick = { appChannel.fireEvent(AppEvent.NavigateTo(Screen.SignUpScreen)) },
+                        onClick = { viewModel.onEvent(LoginUiEvent.SignUpPressed) },
                     ) {
                         Text(text = "Sign Up")
                     }
@@ -115,14 +112,7 @@ fun LoginScreen(
         }
     }
     when (screenState) {
-        LoginScreenState.LoggedIn -> {
-            appChannel.fireEvent(AppEvent.NavigateTo(Screen.MainScreen))
-        }
-        LoginScreenState.Busy -> ProgressSpinner()
-        is LoginScreenState.Error -> {
-            val errorMessage = (screenState as LoginScreenState.Error).errorMessage
-            appChannel.fireEvent(AppEvent.ShowSnackbar(errorMessage))
-        }
-        else -> {}
+        ScreenState.Busy -> ProgressSpinner()
+        ScreenState.Ready -> {}
     }
 }

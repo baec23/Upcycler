@@ -1,7 +1,6 @@
 package com.baec23.upcycler.repository
 
 import android.graphics.Bitmap
-import android.net.Uri
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.JobStatus
 import com.google.firebase.firestore.CollectionReference
@@ -9,6 +8,9 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.scopes.ActivityScoped
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -21,7 +23,19 @@ class JobRepository @Inject constructor(
     private val jobsReference: CollectionReference = firestore.collection("jobs")
     private val keyStoreReference: DocumentReference = firestore.collection("keys").document("jobs")
     private val jobsStorageReference = storage.reference.child("jobs/")
-    val jobList: MutableList<Job> = mutableListOf()
+
+    private val _jobsStateFlow = MutableStateFlow<List<Job>>(emptyList())
+    val jobsStateFlow = _jobsStateFlow.asStateFlow()
+
+    suspend fun getJobById(jobId: Int): Result<Job> {
+        val result = jobsReference.whereEqualTo("jobId", jobId).get().await().documents
+        if(result.size == 1){
+            val toReturn = result[0].toObject(Job::class.java)
+            if(toReturn != null)
+                return Result.success(toReturn)
+        }
+        return Result.failure(Exception("Failed to load job!"))
+    }
 
     suspend fun tryCreateJob(
         images: List<Bitmap>,
@@ -43,7 +57,7 @@ class JobRepository @Inject constructor(
         return try {
             jobsReference.add(jobToAdd).await()
             Result.success("Created Job")
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Result.failure(Exception("Failed to create job"))
         }
     }
@@ -63,19 +77,17 @@ class JobRepository @Inject constructor(
         return toReturn
     }
 
-    suspend fun loadJobList(): Result<Boolean> {
-        val documentSnapshots = jobsReference
-            .whereEqualTo("status", JobStatus.OPEN.name)
-            .get()
-            .await()
-            .documents
-
-        documentSnapshots.forEach { document ->
-            val jobToAdd = document.toObject(Job::class.java)
-            jobToAdd?.let { jobList.add(it) }
+    suspend fun registerJobListListener(callback: (String) -> Unit) {
+        jobsReference.addSnapshotListener { documentSnapshots, error ->
+            if (error == null) {
+                val toReturn: MutableList<Job> = mutableListOf()
+                documentSnapshots?.forEach { document ->
+                    toReturn.add(document.toObject(Job::class.java))
+                }
+                _jobsStateFlow.update { toReturn }
+                callback.invoke("Success")
+            }
         }
-
-        return Result.success(true)
     }
 
     private suspend fun getNewKey(): Int {

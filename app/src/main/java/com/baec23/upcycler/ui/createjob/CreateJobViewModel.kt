@@ -5,23 +5,25 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.baec23.upcycler.util.Screen
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
+import com.baec23.upcycler.ui.AppEvent
+import com.baec23.upcycler.util.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateJobViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val jobRepository: JobRepository
+    private val jobRepository: JobRepository,
+    private val appEventChannel: Channel<AppEvent>
 ) : ViewModel() {
-
-    val coroutineScope = CoroutineScope(Dispatchers.IO)
-    val screenState: MutableState<CreateJobScreenState> =
-        mutableStateOf(CreateJobScreenState.WaitingForInput)
+    val screenState: MutableState<ScreenState> =
+        mutableStateOf(ScreenState.Ready)
     val addedImages: MutableList<Bitmap> = mutableStateListOf()
     val titleFormState: MutableState<String> = mutableStateOf("")
     val detailsFormState: MutableState<String> = mutableStateOf("")
@@ -37,16 +39,16 @@ class CreateJobViewModel @Inject constructor(
             is CreateJobUiEvent.DetailsChanged -> {
                 detailsFormState.value = event.detailsText
             }
-            CreateJobUiEvent.CreateJobPressed -> {
+            CreateJobUiEvent.SubmitPressed -> {
                 tryCreate()
             }
         }
     }
 
     private fun tryCreate() {
-        screenState.value = CreateJobScreenState.Busy
+        screenState.value = ScreenState.Busy
         val currUserId = userRepository.currUser?.id
-        coroutineScope.launch {
+        viewModelScope.launch {
             currUserId?.let {
                 val result = jobRepository.tryCreateJob(
                     images = addedImages,
@@ -56,11 +58,12 @@ class CreateJobViewModel @Inject constructor(
                 )
                 when {
                     result.isSuccess -> {
-                        screenState.value = CreateJobScreenState.JobCreated
+                        viewModelScope.launch { appEventChannel.send(AppEvent.NavigateTo(Screen.MainScreen)) }
+                        screenState.value = ScreenState.Ready
                     }
                     else -> {
-                        screenState.value =
-                            CreateJobScreenState.Error(result.exceptionOrNull()?.message.toString())
+                        viewModelScope.launch { appEventChannel.send(AppEvent.ShowSnackbar("Couldn't Create Job!")) }
+                        screenState.value = ScreenState.Ready
                     }
                 }
             }

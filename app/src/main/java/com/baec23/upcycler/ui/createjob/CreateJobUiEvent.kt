@@ -6,5 +6,5 @@ sealed class CreateJobUiEvent {
     data class TitleChanged(val titleText: String): CreateJobUiEvent()
     data class DetailsChanged(val detailsText: String): CreateJobUiEvent()
     data class BitmapAdded(val addedBitmap: Bitmap): CreateJobUiEvent()
-    object CreateJobPressed: CreateJobUiEvent()
+    object SubmitPressed: CreateJobUiEvent()
 }

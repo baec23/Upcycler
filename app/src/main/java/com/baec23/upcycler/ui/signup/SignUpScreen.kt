@@ -16,17 +16,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.baec23.upcycler.Screen
-import com.baec23.upcycler.ui.AppEvent
-import com.baec23.upcycler.ui.AppEventChannel
 import com.baec23.upcycler.ui.shared.ProgressSpinner
+import com.baec23.upcycler.util.ScreenState
 
 @Composable
 fun SignUpScreen(
-    viewModel: SignUpViewModel = hiltViewModel(),
-    appChannel: AppEventChannel
+    viewModel: SignUpViewModel = hiltViewModel()
 ) {
-    val screenState by viewModel.signUpScreenState
+    val screenState by viewModel.screenState
     val formState by viewModel.signUpFormState
 
     Column(
@@ -132,12 +129,7 @@ fun SignUpScreen(
         }
     }
     when (screenState) {
-        SignUpScreenState.SignedUp -> appChannel.fireEvent(AppEvent.NavigateTo(Screen.LoginScreen))
-        SignUpScreenState.Busy -> ProgressSpinner()
-        is SignUpScreenState.Error -> {
-            val errorMessage = (screenState as SignUpScreenState.Error).errorMessage
-            appChannel.fireEvent(AppEvent.ShowSnackbar(errorMessage))
-        }
+        ScreenState.Busy -> ProgressSpinner()
         else -> {}
     }
 }

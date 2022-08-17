@@ -1,37 +1,50 @@
 package com.baec23.upcycler.ui.main
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
+import com.baec23.upcycler.ui.AppEvent
+import com.baec23.upcycler.util.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val jobRepository: JobRepository
+    userRepository: UserRepository,
+    jobRepository: JobRepository,
+    private val appEventChannel: Channel<AppEvent>
 ) : ViewModel() {
 
-    val coroutineScope = CoroutineScope(Dispatchers.IO)
     val searchFormState: MutableState<String> = mutableStateOf("")
-    val jobList: MutableList<Job> = mutableStateListOf()
+    var jobList: StateFlow<List<Job>> = jobRepository.jobsStateFlow
 
     fun onEvent(event: MainUiEvent) {
         when (event) {
             is MainUiEvent.SearchFormChanged -> searchFormState.value = event.searchText
-            is MainUiEvent.JobSelected -> {}
+            is MainUiEvent.JobSelected -> {
+                viewModelScope.launch {
+                    appEventChannel.send(
+                        AppEvent.NavigateToWithArgs(
+                            screen = Screen.JobDetailsScreen,
+                            args = event.selectedJob.jobId.toString()
+                        )
+                    )
+                }
+            }
+            MainUiEvent.AddJobPressed -> viewModelScope.launch {
+                appEventChannel.send(
+                    AppEvent.NavigateTo(
+                        Screen.CreateJobScreen
+                    )
+                )
+            }
         }
-    }
-
-    init {
-        jobList.clear()
-        jobList.addAll(jobRepository.jobList)
     }
 }
