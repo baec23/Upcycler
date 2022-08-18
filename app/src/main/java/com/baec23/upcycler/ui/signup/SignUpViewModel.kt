@@ -4,9 +4,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.baec23.upcycler.util.Screen
+import com.baec23.upcycler.navigation.Screen
 import com.baec23.upcycler.repository.UserRepository
-import com.baec23.upcycler.ui.AppEvent
+import com.baec23.upcycler.ui.app.AppEvent
 import com.baec23.upcycler.util.InputValidator
 import com.baec23.upcycler.util.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel

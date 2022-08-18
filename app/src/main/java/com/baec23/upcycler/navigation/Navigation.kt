@@ -1,4 +1,4 @@
-package com.baec23.upcycler.ui
+package com.baec23.upcycler.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -12,7 +12,9 @@ import com.baec23.upcycler.ui.login.LoginScreen
 import com.baec23.upcycler.ui.main.MainScreen
 import com.baec23.upcycler.ui.signup.SignUpScreen
 import com.baec23.upcycler.ui.splash.SplashScreen
-import com.baec23.upcycler.util.Screen
+import com.baec23.upcycler.navigation.Screen
+import com.baec23.upcycler.ui.chats.ChatsScreen
+import com.baec23.upcycler.ui.myjobhistory.MyJobHistoryScreen
 
 
 @Composable
@@ -34,6 +36,12 @@ fun Navigation(
         }
         composable(route = Screen.CreateJobScreen.route) {
             CreateJobScreen()
+        }
+        composable(route = Screen.MyJobHistoryScreen.route) {
+            MyJobHistoryScreen()
+        }
+        composable(route = Screen.ChatsScreen.route) {
+            ChatsScreen()
         }
         composable(
             route = Screen.JobDetailsScreen.route + "/{jobId}",

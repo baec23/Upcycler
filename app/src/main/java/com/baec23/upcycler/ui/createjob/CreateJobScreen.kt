@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterialApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.baec23.upcycler.ui.createjob
 
@@ -13,9 +13,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
@@ -177,12 +178,11 @@ fun ImageCard(
     onClick: () -> Unit = {},
     Content: @Composable () -> Unit,
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier
             .padding(5.dp),
-        backgroundColor = backgroundColor,
         shape = RoundedCornerShape(5.dp),
-        elevation = 2.dp,
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         onClick = onClick
     ) {
         Content()
@@ -220,4 +220,21 @@ fun DetailsTextField(
             Text(text = "Details")
         }
     )
+}
+
+@Preview
+@Composable
+fun TestComposable() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        ImageCard(modifier = Modifier.width(100.dp)) {
+            Text(text = "Hello")
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+        ImageCard(modifier = Modifier.width(100.dp)) {
+            Text(text = "World")
+        }
+    }
 }

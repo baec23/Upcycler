@@ -3,8 +3,8 @@ package com.baec23.upcycler
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.baec23.upcycler.ui.AppScreen
-import com.baec23.upcycler.ui.AppEvent
+import com.baec23.upcycler.ui.app.AppScreen
+import com.baec23.upcycler.ui.app.AppEvent
 import com.baec23.upcycler.ui.theme.UpcyclerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.Channel

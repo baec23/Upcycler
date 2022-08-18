@@ -2,7 +2,7 @@ package com.baec23.upcycler.di
 
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
-import com.baec23.upcycler.ui.AppEvent
+import com.baec23.upcycler.ui.app.AppEvent
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.Module

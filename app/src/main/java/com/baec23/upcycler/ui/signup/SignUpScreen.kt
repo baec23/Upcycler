@@ -1,12 +1,15 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.baec23.upcycler.ui.signup
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -17,6 +20,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.baec23.upcycler.ui.shared.ProgressSpinner
+import com.baec23.upcycler.ui.theme.Shapes
 import com.baec23.upcycler.util.ScreenState
 
 @Composable
@@ -119,6 +123,7 @@ fun SignUpScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
+                        shape = Shapes.small,
                         onClick = { viewModel.onEvent(SignUpUiEvent.SignUpPressed) },
                         enabled = viewModel.canSignUp.value
                     ) {

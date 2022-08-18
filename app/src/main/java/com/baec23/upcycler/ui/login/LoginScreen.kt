@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.baec23.upcycler.ui.login
 
 import androidx.compose.foundation.Image
@@ -5,13 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.baec23.upcycler.R
 import com.baec23.upcycler.ui.shared.ProgressSpinner
+import com.baec23.upcycler.ui.theme.Shapes
 import com.baec23.upcycler.util.ScreenState
 
 @Composable
@@ -97,12 +97,14 @@ fun LoginScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
+                        shape = Shapes.small,
                         onClick = { viewModel.onEvent(LoginUiEvent.LoginPressed) },
                         enabled = viewModel.canLogin.value
                     ) {
                         Text(text = "Login")
                     }
                     Button(
+                        shape = Shapes.small,
                         onClick = { viewModel.onEvent(LoginUiEvent.SignUpPressed) },
                     ) {
                         Text(text = "Sign Up")

@@ -2,9 +2,9 @@ package com.baec23.upcycler.ui.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.baec23.upcycler.util.Screen
+import com.baec23.upcycler.navigation.Screen
 import com.baec23.upcycler.repository.JobRepository
-import com.baec23.upcycler.ui.AppEvent
+import com.baec23.upcycler.ui.app.AppEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

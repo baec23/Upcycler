@@ -1,4 +1,4 @@
-package com.baec23.upcycler.util
+package com.baec23.upcycler.navigation
 
 sealed class Screen(var route: String) {
     object SplashScreen : Screen("splash_screen")
@@ -7,6 +7,8 @@ sealed class Screen(var route: String) {
     object MainScreen : Screen("main_screen")
     object CreateJobScreen : Screen("createjob_screen")
     object JobDetailsScreen : Screen("jobdetails_screen")
+    object MyJobHistoryScreen : Screen("myjobhistory_screen")
+    object ChatsScreen : Screen("chats_screen")
 
     fun withArgs(vararg args: String): String {
         return buildString {

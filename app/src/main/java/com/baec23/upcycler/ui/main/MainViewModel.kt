@@ -7,10 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
-import com.baec23.upcycler.ui.AppEvent
-import com.baec23.upcycler.util.Screen
+import com.baec23.upcycler.ui.app.AppEvent
+import com.baec23.upcycler.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,11 +24,18 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     val searchFormState: MutableState<String> = mutableStateOf("")
-    var jobList: StateFlow<List<Job>> = jobRepository.jobsStateFlow
+    val jobList: StateFlow<List<Job>> = jobRepository.jobsStateFlow
+    private val _filteredJobList: MutableStateFlow<List<Job>> = MutableStateFlow(jobList.value)
+    val filteredJobList: StateFlow<List<Job>> = _filteredJobList
 
     fun onEvent(event: MainUiEvent) {
         when (event) {
-            is MainUiEvent.SearchFormChanged -> searchFormState.value = event.searchText
+            is MainUiEvent.SearchFormChanged -> {
+                searchFormState.value = event.searchText
+                viewModelScope.launch {
+                    filterJobsBySearch()
+                }
+            }
             is MainUiEvent.JobSelected -> {
                 viewModelScope.launch {
                     appEventChannel.send(
@@ -46,5 +54,15 @@ class MainViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun filterJobsBySearch() {
+        var filteredJobs = jobList.value
+        if (searchFormState.value.isNotEmpty()) {
+            filteredJobs = filteredJobs.filter {
+                it.title.contains(searchFormState.value)
+            }
+        }
+        _filteredJobList.value = filteredJobs
     }
 }

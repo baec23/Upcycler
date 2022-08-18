@@ -5,8 +5,12 @@ package com.baec23.upcycler.ui.jobdetails
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -87,15 +91,31 @@ fun UserDetailsBar(
     user: User
 ) {
     val userDisplayName = user.displayName
-    Row(
+    Column(
         modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = userDisplayName,
-            fontWeight = FontWeight.Bold
-        )
+        ElevatedCard(
+        ) {
+            Row(
+                modifier = modifier.padding(10.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
+                Spacer(modifier = Modifier.width(10.dp))
+                Column() {
+                    Text(
+                        text = userDisplayName,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "나는 뭐를 하는 사람이다",
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
     }
 }
 

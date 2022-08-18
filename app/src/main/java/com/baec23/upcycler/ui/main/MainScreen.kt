@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterialApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.baec23.upcycler.ui.main
 
@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,24 +27,25 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.baec23.upcycler.model.Job
+import com.baec23.upcycler.ui.theme.Shapes
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = hiltViewModel()
 ) {
-    val scaffoldState = rememberScaffoldState()
     val searchFormState by viewModel.searchFormState
-    val jobs by viewModel.jobList.collectAsState()
+    val jobs by viewModel.filteredJobList.collectAsState()
 
-    Scaffold(scaffoldState = scaffoldState,
+    Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                backgroundColor = MaterialTheme.colors.primary,
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = Shapes.medium,
                 onClick = { viewModel.onEvent(MainUiEvent.AddJobPressed) }
             ) {
                 Icon(
-                    Icons.Default.AddCircle,
-                    "Create Job"
+                    imageVector = Icons.Default.AddCircle,
+                    contentDescription = "Create Job"
                 )
             }
         }
@@ -53,7 +54,7 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it),
-            color = MaterialTheme.colors.background
+            color = MaterialTheme.colorScheme.background
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 SearchBar(searchFormState = searchFormState, onValueChange = { searchString ->
@@ -116,11 +117,10 @@ fun JobImageCard(
     fontFamily: FontFamily = FontFamily.Default,
     onClick: (Job) -> Unit,
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier
             .fillMaxWidth(),
         shape = RoundedCornerShape(15.dp),
-        elevation = 2.dp,
         onClick = {
             onClick(job)
         }

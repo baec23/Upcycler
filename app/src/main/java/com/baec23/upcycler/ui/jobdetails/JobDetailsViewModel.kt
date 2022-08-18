@@ -8,7 +8,7 @@ import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.User
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
-import com.baec23.upcycler.ui.AppEvent
+import com.baec23.upcycler.ui.app.AppEvent
 import com.baec23.upcycler.util.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
