@@ -1,6 +1,8 @@
 package com.baec23.upcycler.repository
 
 import com.baec23.upcycler.model.User
+import com.baec23.upcycler.util.DateConverter.isWithinDays
+import com.baec23.upcycler.util.LOGIN_EXPIRATION_DAYS
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,6 +39,21 @@ class UserRepository @Inject constructor(
         return Result.failure(Exception("No User Found for LoginId: $loginId"))
     }
 
+    suspend fun trySavedLogin(savedUserId: Int): Result<User> {
+        val savedUser = getUserById(savedUserId).getOrElse {
+            return Result.failure(it)
+        }
+        return if (savedUser.lastLoginTimestamp.isWithinDays(
+                System.currentTimeMillis(),
+                LOGIN_EXPIRATION_DAYS
+            )
+        ) {
+            currUser = savedUser
+            Result.success(savedUser)
+        } else
+            Result.failure(Exception("Last login was over $LOGIN_EXPIRATION_DAYS ago"))
+    }
+
     suspend fun trySignup(loginId: String, password: String, displayName: String): Result<String> {
         if (doesDuplicateIdExist(loginId))
             return Result.failure(Exception("LoginId: $loginId Already Exists"))
@@ -55,9 +72,9 @@ class UserRepository @Inject constructor(
 
     suspend fun getUserById(userId: Int): Result<User> {
         val result = usersReference.whereEqualTo("id", userId).get().await().documents
-        if(result.size == 1){
+        if (result.size == 1) {
             val toReturn = result[0].toObject(User::class.java)
-            if(toReturn != null)
+            if (toReturn != null)
                 return Result.success(toReturn)
         }
         return Result.failure(Exception("Failed to load user!"))
@@ -81,5 +98,14 @@ class UserRepository @Inject constructor(
             transaction.update(keyStoreReference, "value", newValue)
         }.await()
         return toReturn.toInt()
+    }
+
+    private suspend fun updateUserLastLogin(userId: Int) {
+        val userDocSnap =
+            usersReference.whereEqualTo("id", userId).get().await().documents[0]
+        if (userDocSnap != null) {
+            val docRef = userDocSnap.reference
+            docRef.update("lastLoginTimestamp", System.currentTimeMillis())
+        }
     }
 }

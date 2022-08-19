@@ -1,6 +1,7 @@
 package com.baec23.upcycler.repository
 
 import android.graphics.Bitmap
+import androidx.datastore.preferences.preferencesDataStore
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.JobStatus
 import com.google.firebase.firestore.CollectionReference
@@ -77,7 +78,7 @@ class JobRepository @Inject constructor(
         return toReturn
     }
 
-    suspend fun registerJobListListener(callback: (String) -> Unit) {
+    fun registerJobListListener(callback: (String) -> Unit) {
         jobsReference.addSnapshotListener { documentSnapshots, error ->
             if (error == null) {
                 val toReturn: MutableList<Job> = mutableListOf()

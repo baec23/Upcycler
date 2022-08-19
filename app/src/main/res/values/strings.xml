@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Upcycler</string>
+    <string name="title_activity_login_signup">LoginSignupActivity</string>
 </resources>

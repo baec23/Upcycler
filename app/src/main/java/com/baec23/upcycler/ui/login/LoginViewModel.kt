@@ -4,14 +4,15 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.baec23.upcycler.model.User
 import com.baec23.upcycler.navigation.Screen
+import com.baec23.upcycler.repository.DataStoreRepository
 import com.baec23.upcycler.repository.UserRepository
 import com.baec23.upcycler.ui.app.AppEvent
+import com.baec23.upcycler.util.DSKEY_SAVED_USER_ID
 import com.baec23.upcycler.util.InputValidator
 import com.baec23.upcycler.util.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val dataStoreRepository: DataStoreRepository,
     private val appEventChannel: Channel<AppEvent>
 ) : ViewModel() {
 
@@ -39,7 +41,7 @@ class LoginViewModel @Inject constructor(
                         loginId = event.loginId,
                         loginIdErrorMessage = "Id must be at least 4 characters"
                     )
-                updateCanLogIn()
+                updateCanLogin()
             }
             is LoginUiEvent.PasswordChanged -> {
                 if (InputValidator.isPasswordValid(event.password))
@@ -52,7 +54,7 @@ class LoginViewModel @Inject constructor(
                         password = event.password,
                         passwordErrorMessage = "Password must be at least 4 characters"
                     )
-                updateCanLogIn()
+                updateCanLogin()
             }
             LoginUiEvent.LoginPressed -> tryLogin()
             LoginUiEvent.SignUpPressed -> viewModelScope.launch {
@@ -65,27 +67,26 @@ class LoginViewModel @Inject constructor(
 
     private fun tryLogin() {
         loginScreenState.value = ScreenState.Busy
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch {
             val loginId = loginFormState.value.loginId
             val password = loginFormState.value.password
             val result = userRepository.tryLogin(loginId, password)
             when {
                 result.isSuccess -> {
-                    viewModelScope.launch { appEventChannel.send(AppEvent.NavigateTo(Screen.MainScreen)) }
+                    dataStoreRepository.putInt(DSKEY_SAVED_USER_ID, result.getOrDefault(User()).id)
+                    appEventChannel.send(AppEvent.NavigateTo(Screen.MainScreen))
                     loginScreenState.value = ScreenState.Ready
                 }
                 result.isFailure -> {
                     clearForm()
-                    viewModelScope.launch {
-                        appEventChannel.send(AppEvent.ShowSnackbar("Couldn't Log In!"))
-                    }
+                    appEventChannel.send(AppEvent.ShowSnackbar("Couldn't Log In!"))
                     loginScreenState.value = ScreenState.Ready
                 }
             }
         }
     }
 
-    private fun updateCanLogIn() {
+    private fun updateCanLogin() {
         val formState = loginFormState.value
         canLogin.value = formState.loginId.isNotEmpty() &&
                 formState.password.isNotEmpty() &&
@@ -95,5 +96,6 @@ class LoginViewModel @Inject constructor(
 
     private fun clearForm() {
         loginFormState.value = LoginFormState()
+        updateCanLogin()
     }
 }

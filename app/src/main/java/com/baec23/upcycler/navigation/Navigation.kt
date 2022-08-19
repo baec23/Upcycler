@@ -6,25 +6,20 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.baec23.upcycler.ui.chats.ChatsScreen
 import com.baec23.upcycler.ui.createjob.CreateJobScreen
 import com.baec23.upcycler.ui.jobdetails.JobDetailsScreen
 import com.baec23.upcycler.ui.login.LoginScreen
 import com.baec23.upcycler.ui.main.MainScreen
-import com.baec23.upcycler.ui.signup.SignUpScreen
-import com.baec23.upcycler.ui.splash.SplashScreen
-import com.baec23.upcycler.navigation.Screen
-import com.baec23.upcycler.ui.chats.ChatsScreen
 import com.baec23.upcycler.ui.myjobhistory.MyJobHistoryScreen
+import com.baec23.upcycler.ui.signup.SignUpScreen
 
 
 @Composable
 fun Navigation(
     navHostController: NavHostController
 ) {
-    NavHost(navController = navHostController, startDestination = Screen.SplashScreen.route) {
-        composable(route = Screen.SplashScreen.route) {
-            SplashScreen()
-        }
+    NavHost(navController = navHostController, startDestination = Screen.LoginScreen.route) {
         composable(route = Screen.LoginScreen.route) {
             LoginScreen()
         }
@@ -46,7 +41,7 @@ fun Navigation(
         composable(
             route = Screen.JobDetailsScreen.route + "/{jobId}",
             arguments = listOf(
-                navArgument("jobId"){
+                navArgument("jobId") {
                     type = NavType.IntType
                     nullable = false
                 }

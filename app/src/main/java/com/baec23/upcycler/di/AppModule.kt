@@ -1,5 +1,7 @@
 package com.baec23.upcycler.di
 
+import android.content.Context
+import com.baec23.upcycler.repository.DataStoreRepository
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
 import com.baec23.upcycler.ui.app.AppEvent
@@ -8,8 +10,11 @@ import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import javax.inject.Singleton
 
 @Module
@@ -27,7 +32,8 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideAppEventChannel() = Channel<AppEvent>()
+    fun provideDataStoreRepository(@ApplicationContext context: Context) =
+        DataStoreRepository(context)
 
     @Singleton
     @Provides
@@ -36,4 +42,8 @@ object AppModule {
     @Singleton
     @Provides
     fun provideFirebaseStorage() = FirebaseStorage.getInstance()
+
+    @Singleton
+    @Provides
+    fun provideAppEventChannel() = Channel<AppEvent>()
 }

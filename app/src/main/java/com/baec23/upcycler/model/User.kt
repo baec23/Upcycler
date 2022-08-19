@@ -4,5 +4,6 @@ data class User(
     val id: Int = 0,
     val loginId: String = "",
     val password: String = "",
-    val displayName: String = ""
+    val displayName: String = "",
+    val lastLoginTimestamp: Long = 0
 )
