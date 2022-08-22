@@ -1,6 +1,5 @@
 package com.baec23.upcycler
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.baec23.upcycler.navigation.Screen
@@ -9,10 +8,8 @@ import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
 import com.baec23.upcycler.ui.app.AppEvent
 import com.baec23.upcycler.util.DSKEY_SAVED_USER_ID
-import com.baec23.upcycler.util.TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -32,25 +29,26 @@ class LauncherViewModel @Inject constructor(
     init {
         viewModelScope.launch {
 
-            Log.d(TAG, "LauncherViewModel: What1")
-            val savedUserId = dataStoreRepository.getInt(DSKEY_SAVED_USER_ID)
-
-            Log.d(TAG, "LauncherViewModel: What2")
-            if (savedUserId != null) {
-                val loginResult = userRepository.trySavedLogin(savedUserId)
-                if (loginResult.isSuccess)
-                    appEventChannel.send(AppEvent.NavigateTo(Screen.MainScreen))
+            var loadedVal = false
+            jobRepository.registerJobListListener {
+                if (it == "Success") {
+                    loadedVal = true
+                    _isLoaded.value = true
+                }
             }
 
-//            Log.d(TAG, "LauncherViewModel: What3")
-//            jobRepository.registerJobListListener {
-//                Log.d(TAG, "LauncherViewModel: What4")
-//                if (it == "Success")
-//                    _isLoaded.value = true
-//            }
+            val savedUserId = dataStoreRepository.getInt(DSKEY_SAVED_USER_ID)
 
-            delay(1000)
-            _isLoaded.value = true
+            if (savedUserId != null) {
+                val loginResult = userRepository.trySavedLogin(savedUserId)
+                if (loginResult.isSuccess && loadedVal)
+                    appEventChannel.send(
+                        AppEvent.NavigateToAndClearBackstack(
+                            Screen.LoginScreen,
+                            Screen.MainScreen
+                        )
+                    )
+            }
         }
     }
 }

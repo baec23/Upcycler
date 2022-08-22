@@ -74,7 +74,12 @@ class LoginViewModel @Inject constructor(
             when {
                 result.isSuccess -> {
                     dataStoreRepository.putInt(DSKEY_SAVED_USER_ID, result.getOrDefault(User()).id)
-                    appEventChannel.send(AppEvent.NavigateTo(Screen.MainScreen))
+                    appEventChannel.send(
+                        AppEvent.NavigateToAndClearBackstack(
+                            Screen.LoginScreen,
+                            Screen.MainScreen
+                        )
+                    )
                     loginScreenState.value = ScreenState.Ready
                 }
                 result.isFailure -> {

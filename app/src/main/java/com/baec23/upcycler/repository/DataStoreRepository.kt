@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.baec23.upcycler.navigation.Screen
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -37,6 +38,13 @@ class DataStoreRepository @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    suspend fun remove(key: String){
+        val preferencesKey = intPreferencesKey(key)
+        context.dataStore.edit{ preferences ->
+            preferences.remove(preferencesKey)
         }
     }
 

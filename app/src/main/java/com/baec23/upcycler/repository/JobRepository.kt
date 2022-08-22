@@ -9,9 +9,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.scopes.ActivityScoped
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -36,6 +34,11 @@ class JobRepository @Inject constructor(
                 return Result.success(toReturn)
         }
         return Result.failure(Exception("Failed to load job!"))
+    }
+
+    suspend fun deleteJob(job: Job): Result<Job> {
+        jobsReference.whereEqualTo("jobId", job.jobId).get().await().documents[0].reference.delete()
+        return Result.success(job)
     }
 
     suspend fun tryCreateJob(
@@ -90,6 +93,8 @@ class JobRepository @Inject constructor(
             }
         }
     }
+
+
 
     private suspend fun getNewKey(): Int {
         var toReturn = 0L

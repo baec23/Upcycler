@@ -34,12 +34,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-//        runBlocking {
-//            val wtf = FirebaseFirestore.getInstance().collection("users").get().await()
-//            Log.d(TAG, "onCreate: $wtf")
-//        }
-
-
         setContent {
             UpcyclerTheme {
                 AppScreen(eventChannel = appEventChannel)

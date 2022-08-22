@@ -2,6 +2,8 @@ package com.baec23.upcycler.ui.main
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.baec23.upcycler.model.Job
@@ -60,7 +62,7 @@ class MainViewModel @Inject constructor(
         var filteredJobs = jobList.value
         if (searchFormState.value.isNotEmpty()) {
             filteredJobs = filteredJobs.filter {
-                it.title.contains(searchFormState.value)
+                it.title.toLowerCase(locale = Locale.current).contains(searchFormState.value.toLowerCase(locale = Locale.current))
             }
         }
         _filteredJobList.value = filteredJobs

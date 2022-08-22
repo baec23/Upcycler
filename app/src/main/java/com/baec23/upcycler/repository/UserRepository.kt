@@ -32,6 +32,7 @@ class UserRepository @Inject constructor(
             val user = document.toObject(User::class.java)
             return if (user != null && user.password == password) {
                 currUser = user
+                updateUserLastLogin(user.id)
                 Result.success(user)
             } else
                 Result.failure(Exception("Password Incorrect"))
@@ -49,6 +50,7 @@ class UserRepository @Inject constructor(
             )
         ) {
             currUser = savedUser
+            updateUserLastLogin(savedUser.id)
             Result.success(savedUser)
         } else
             Result.failure(Exception("Last login was over $LOGIN_EXPIRATION_DAYS ago"))
@@ -68,6 +70,10 @@ class UserRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(Exception())
         }
+    }
+
+    fun logout(){
+        currUser = null
     }
 
     suspend fun getUserById(userId: Int): Result<User> {
