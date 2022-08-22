@@ -2,9 +2,11 @@
 
 package com.baec23.upcycler.ui.login
 
+import android.view.KeyEvent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,6 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,6 +39,7 @@ fun LoginScreen(
     val formState by viewModel.loginFormState
     val bannerPainter = painterResource(id = R.drawable.upcycling_banner2)
     val bannerContentDescription = "Upcycler Banner"
+    val focusManager = LocalFocusManager.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -52,6 +58,15 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 OutlinedTextField(
+                    modifier = Modifier
+                        .onKeyEvent {
+                            if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER)
+                            {
+                                focusManager.moveFocus(FocusDirection.Down)
+                                return@onKeyEvent true
+                            }
+                            return@onKeyEvent false
+                        },
                     value = formState.loginId,
                     label = {
                         Text(text = "Login Id")
@@ -62,6 +77,7 @@ fun LoginScreen(
                             contentDescription = "Login Id"
                         )
                     },
+                    singleLine = true,
                     onValueChange = {
                         viewModel.onEvent(LoginUiEvent.LoginIdChanged(it))
                     },
@@ -69,7 +85,10 @@ fun LoginScreen(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
-                    )
+                    ),
+                    keyboardActions = KeyboardActions(onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    })
                 )
                 Spacer(modifier = Modifier.height(30.dp))
                 OutlinedTextField(
@@ -83,7 +102,15 @@ fun LoginScreen(
                             contentDescription = "Login Id"
                         )
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(onDone = {
+                        focusManager.clearFocus(true)
+
+                    }),
                     visualTransformation = PasswordVisualTransformation(),
                     onValueChange = {
                         viewModel.onEvent(LoginUiEvent.PasswordChanged(it))

@@ -1,6 +1,7 @@
 package com.baec23.upcycler.util
 
 object InputValidator {
+
     fun isLoginIdValid(loginId: String): Boolean {
         return loginId.length >= 4
     }

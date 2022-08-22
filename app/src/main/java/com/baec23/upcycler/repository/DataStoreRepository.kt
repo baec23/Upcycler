@@ -8,11 +8,13 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.baec23.upcycler.navigation.Screen
+import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "upcycler_prefs")
 
+@ActivityScoped
 class DataStoreRepository @Inject constructor(
     private val context: Context
 ) {

@@ -2,16 +2,15 @@
 
 package com.baec23.upcycler.ui.app
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
@@ -59,7 +58,7 @@ fun AppScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             if (!(appViewModel.currNavScreen.value == Screen.LoginScreen || appViewModel.currNavScreen.value == Screen.SignUpScreen)) {
-                TopBar(modifier = Modifier.height(50.dp), onLogout = {
+                TopBar(modifier = Modifier.height(60.dp), onLogout = {
                     appViewModel.logout()
                     navHostController.currentDestination?.route?.let {
                         navHostController.popBackStack(
@@ -141,19 +140,52 @@ fun BottomNavigationBar(
     }
 }
 
+@Preview
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
-    onLogout: () -> Unit
+    onLogout: () -> Unit = {}
 ) {
+    var dropdownMenuExpanded by remember { mutableStateOf(false) }
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.End
     ) {
-        IconButton(onClick = onLogout) {
-            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Logout")
+        IconButton(onClick = {
+            dropdownMenuExpanded = true
+        }) {
+            DropdownMenu(
+                modifier = Modifier.background(MaterialTheme.colorScheme.primary),
+                expanded = dropdownMenuExpanded,
+                onDismissRequest = { dropdownMenuExpanded = false }) {
+                DropdownMenuContent(onLogout = {
+                    dropdownMenuExpanded = false
+                    onLogout()
+                })
+            }
 
+            Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More")
         }
-
     }
 }
+
+@Composable
+fun DropdownMenuContent(
+    modifier: Modifier = Modifier,
+    onLogout: () -> Unit
+) {
+    DropdownMenuItem(
+        modifier = modifier.background(MaterialTheme.colorScheme.primary),
+        colors = MenuDefaults.itemColors(
+            textColor = MaterialTheme.colorScheme.onPrimary,
+            leadingIconColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Logout")
+        },
+        text = {
+            Text("Logout")
+        }, onClick = onLogout
+    )
+}
+
