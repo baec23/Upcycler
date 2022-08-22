@@ -44,7 +44,6 @@ class LauncherViewModel @Inject constructor(
                 if (loginResult.isSuccess && loadedVal)
                     appEventChannel.send(
                         AppEvent.NavigateToAndClearBackstack(
-                            Screen.LoginScreen,
                             Screen.MainScreen
                         )
                     )

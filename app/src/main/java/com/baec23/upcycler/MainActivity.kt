@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.baec23.upcycler.ui.app.AppEvent
 import com.baec23.upcycler.ui.app.AppScreen
 import com.baec23.upcycler.ui.theme.UpcyclerTheme
@@ -36,6 +38,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             UpcyclerTheme {
+                val navHostController = rememberNavController()
                 AppScreen(eventChannel = appEventChannel)
             }
         }

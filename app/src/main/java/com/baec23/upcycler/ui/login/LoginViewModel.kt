@@ -76,7 +76,6 @@ class LoginViewModel @Inject constructor(
                     dataStoreRepository.putInt(DSKEY_SAVED_USER_ID, result.getOrDefault(User()).id)
                     appEventChannel.send(
                         AppEvent.NavigateToAndClearBackstack(
-                            Screen.LoginScreen,
                             Screen.MainScreen
                         )
                     )

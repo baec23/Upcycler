@@ -1,14 +1,13 @@
 package com.baec23.upcycler.navigation
 
-sealed class Screen(var route: String) {
-    object SplashScreen : Screen("splash_screen")
-    object LoginScreen : Screen("login_screen")
-    object SignUpScreen : Screen("signup_screen")
-    object MainScreen : Screen("main_screen")
-    object CreateJobScreen : Screen("createjob_screen")
-    object JobDetailsScreen : Screen("jobdetails_screen")
-    object MyJobHistoryScreen : Screen("myjobhistory_screen")
-    object ChatsScreen : Screen("chats_screen")
+sealed class Screen(val route: String, val displayName: String) {
+    object LoginScreen : Screen("login_screen", "Login")
+    object SignUpScreen : Screen("signup_screen", "Sign Up")
+    object MainScreen : Screen("main_screen", "Upcycler")
+    object CreateJobScreen : Screen("createjob_screen", "Create Job")
+    object JobDetailsScreen : Screen("jobdetails_screen", "Job Details")
+    object MyJobHistoryScreen : Screen("myjobhistory_screen", "My Jobs")
+    object ChatsScreen : Screen("chats_screen", "Chats")
 
     fun withArgs(vararg args: String): String {
         return buildString {

@@ -50,17 +50,19 @@ fun JobDetailsScreen(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(scrollState)
-            .padding(15.dp),
+            .padding(horizontal = 15.dp),
         verticalArrangement = Arrangement.Top
     ) {
         if (isMyJob) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .height(25.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
+                Text("Delete Job")
                 IconButton(
-                    onClick = {viewModel.onEvent(JobDetailsUiEvent.DeletePressed(job))}
+                    onClick = { viewModel.onEvent(JobDetailsUiEvent.DeletePressed(job)) }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -108,7 +110,7 @@ fun ImagePager(
                     }
                 },
                 contentDescription = "Image",
-                contentScale = ContentScale.FillWidth
+                contentScale = ContentScale.Fit
             )
         }
         Spacer(modifier = Modifier.padding(4.dp))

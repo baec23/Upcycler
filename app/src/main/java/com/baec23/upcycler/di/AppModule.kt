@@ -1,6 +1,9 @@
 package com.baec23.upcycler.di
 
 import android.content.Context
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.ComposeNavigator
+import androidx.navigation.compose.DialogNavigator
 import com.baec23.upcycler.repository.DataStoreRepository
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
@@ -13,8 +16,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 import javax.inject.Singleton
 
 @Module
@@ -46,4 +47,11 @@ object AppModule {
     @Singleton
     @Provides
     fun provideAppEventChannel() = Channel<AppEvent>()
+
+    @Singleton
+    @Provides
+    fun provideNavHostController(@ApplicationContext context: Context) = NavHostController(context).apply {
+        navigatorProvider.addNavigator(ComposeNavigator())
+        navigatorProvider.addNavigator(DialogNavigator())
+    }
 }

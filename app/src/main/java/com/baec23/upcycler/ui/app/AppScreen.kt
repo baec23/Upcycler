@@ -10,10 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.rememberNavController
 import com.baec23.upcycler.model.BottomNavItem
 import com.baec23.upcycler.navigation.Navigation
 import com.baec23.upcycler.navigation.Screen
@@ -22,30 +22,28 @@ import kotlinx.coroutines.flow.receiveAsFlow
 
 @Composable
 fun AppScreen(
-    appViewModel: AppViewModel = hiltViewModel(),
+    viewModel: AppViewModel = hiltViewModel(),
     eventChannel: Channel<AppEvent>,
 ) {
-    val navHostController = rememberNavController()
+    val navHostController = viewModel.navHostController
+    val currScreen by viewModel.currNavScreen
     val snackbarHostState = remember { SnackbarHostState() }
-
     val eventsFlow = eventChannel.receiveAsFlow()
     val event = eventsFlow.collectAsState(initial = AppEvent.None).value
+
     LaunchedEffect(event) {
         when (event) {
             is AppEvent.NavigateUp -> {
                 navHostController.navigateUp()
             }
             is AppEvent.NavigateTo -> {
-                appViewModel.setCurrNavScreen(event.screen)
                 navHostController.navigate(event.screen.route)
             }
             is AppEvent.NavigateToAndClearBackstack -> {
-                navHostController.popBackStack(event.currScreen.route, true)
-                appViewModel.setCurrNavScreen(event.destinationScreen)
-                navHostController.navigate(event.destinationScreen.route)
+                navHostController.popBackStack(navHostController.graph.id, true)
+                navHostController.navigate(event.screen.route)
             }
             is AppEvent.NavigateToWithArgs -> {
-                appViewModel.setCurrNavScreen(event.screen)
                 navHostController.navigate(event.screen.withArgs(event.args))
             }
             is AppEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
@@ -57,23 +55,22 @@ fun AppScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            if (!(appViewModel.currNavScreen.value == Screen.LoginScreen || appViewModel.currNavScreen.value == Screen.SignUpScreen)) {
-                TopBar(modifier = Modifier.height(60.dp), onLogout = {
-                    appViewModel.logout()
-                    navHostController.currentDestination?.route?.let {
-                        navHostController.popBackStack(
-                            it, true
-                        )
-                    }
-                    navHostController.navigate(Screen.LoginScreen.route)
-                })
+            if (!(viewModel.currNavScreen.value == Screen.LoginScreen || viewModel.currNavScreen.value == Screen.SignUpScreen)) {
+                TopBar(
+                    modifier = Modifier.height(60.dp),
+                    screenName = currScreen.displayName,
+                    onLogout = {
+                        viewModel.logout()
+                        navHostController.popBackStack(navHostController.graph.id, true)
+                        navHostController.navigate(Screen.LoginScreen.route)
+                    })
             }
         },
         bottomBar = {
-            if (!(appViewModel.currNavScreen.value == Screen.LoginScreen || appViewModel.currNavScreen.value == Screen.SignUpScreen)) {
+            if (!(viewModel.currNavScreen.value == Screen.LoginScreen || viewModel.currNavScreen.value == Screen.SignUpScreen)) {
                 BottomNavigationBar(
                     modifier = Modifier
-                        .height(60.dp),
+                        .height(50.dp),
                     items = listOf(
                         BottomNavItem(
                             name = "Main",
@@ -81,7 +78,7 @@ fun AppScreen(
                             screen = Screen.MainScreen
                         ),
                         BottomNavItem(
-                            name = "My Job History",
+                            name = "My Jobs",
                             icon = Icons.Default.List,
                             screen = Screen.MyJobHistoryScreen
                         ),
@@ -106,51 +103,24 @@ fun AppScreen(
 }
 
 @Composable
-fun BottomNavigationBar(
-    modifier: Modifier = Modifier,
-    items: List<BottomNavItem>,
-    onItemClick: (BottomNavItem) -> Unit
-) {
-    var selectedItem by remember { mutableStateOf(items[0]) }
-    NavigationBar(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.onPrimary,
-    ) {
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = item == selectedItem,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                    indicatorColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurface
-                ),
-                icon = {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(imageVector = item.icon, contentDescription = null)
-                    }
-                },
-                onClick = {
-                    selectedItem = item
-                    onItemClick(item)
-                })
-        }
-    }
-}
-
-@Preview
-@Composable
 fun TopBar(
     modifier: Modifier = Modifier,
+    screenName: String,
     onLogout: () -> Unit = {}
 ) {
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
     Row(
-        modifier = modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.End
+        modifier = modifier
+            .fillMaxSize()
+            .padding(start = 15.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Text(
+            text = screenName,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         IconButton(onClick = {
             dropdownMenuExpanded = true
         }) {
@@ -158,12 +128,11 @@ fun TopBar(
                 modifier = Modifier.background(MaterialTheme.colorScheme.primary),
                 expanded = dropdownMenuExpanded,
                 onDismissRequest = { dropdownMenuExpanded = false }) {
-                DropdownMenuContent(onLogout = {
+                DropdownMenuContent(modifier = Modifier.height(25.dp)) {
                     dropdownMenuExpanded = false
                     onLogout()
-                })
+                }
             }
-
             Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More")
         }
     }
@@ -189,3 +158,54 @@ fun DropdownMenuContent(
     )
 }
 
+@Composable
+fun BottomNavigationBar(
+    modifier: Modifier = Modifier,
+    items: List<BottomNavItem>,
+    onItemClick: (BottomNavItem) -> Unit
+) {
+    var selectedItem by remember { mutableStateOf(items[0]) }
+    NavigationBar(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.onPrimary,
+    ) {
+        items.forEach { item ->
+            val isSelected = item == selectedItem
+            NavigationBarItem(
+                selected = isSelected,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                    indicatorColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurface
+                ),
+                icon = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Row(
+                            modifier = Modifier.height(30.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(imageVector = item.icon, contentDescription = null)
+                            if (isSelected) {
+                                Spacer(modifier = Modifier.width(5.dp))
+                                Text(
+                                    text = item.name,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Clip,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+
+                    }
+                },
+                onClick = {
+                    selectedItem = item
+                    onItemClick(item)
+                })
+        }
+    }
+}
