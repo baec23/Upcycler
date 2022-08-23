@@ -19,6 +19,7 @@ import com.baec23.upcycler.navigation.Navigation
 import com.baec23.upcycler.navigation.Screen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppScreen(
@@ -30,6 +31,7 @@ fun AppScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val eventsFlow = eventChannel.receiveAsFlow()
     val event = eventsFlow.collectAsState(initial = AppEvent.None).value
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(event) {
         when (event) {
@@ -47,6 +49,11 @@ fun AppScreen(
                 navHostController.navigate(event.screen.withArgs(event.args))
             }
             is AppEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
+            is AppEvent.Logout -> {
+                viewModel.logout()
+                navHostController.popBackStack(navHostController.graph.id, true)
+                navHostController.navigate(Screen.LoginScreen.route)
+            }
             else -> {}
         }
         eventChannel.send(AppEvent.None)
@@ -55,14 +62,12 @@ fun AppScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            if (!(viewModel.currNavScreen.value == Screen.LoginScreen || viewModel.currNavScreen.value == Screen.SignUpScreen)) {
+            if (!currScreen.hasCustomTopBar) {
                 TopBar(
                     modifier = Modifier.height(60.dp),
                     screenName = currScreen.displayName,
                     onLogout = {
-                        viewModel.logout()
-                        navHostController.popBackStack(navHostController.graph.id, true)
-                        navHostController.navigate(Screen.LoginScreen.route)
+                        coroutineScope.launch { eventChannel.send(AppEvent.Logout) }
                     })
             }
         },
@@ -195,7 +200,7 @@ fun BottomNavigationBar(
                                     text = item.name,
                                     maxLines = 1,
                                     overflow = TextOverflow.Clip,
-                                    fontSize = 14.sp
+                                    fontSize = 15.sp
                                 )
                             }
                         }

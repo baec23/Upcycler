@@ -1,11 +1,11 @@
 package com.baec23.upcycler.navigation
 
-sealed class Screen(val route: String, val displayName: String) {
-    object LoginScreen : Screen("login_screen", "Login")
-    object SignUpScreen : Screen("signup_screen", "Sign Up")
+sealed class Screen(val route: String, val displayName: String, val hasCustomTopBar: Boolean = false) {
+    object LoginScreen : Screen("login_screen", "Login", true)
+    object SignUpScreen : Screen("signup_screen", "Sign Up", true)
     object MainScreen : Screen("main_screen", "Upcycler")
     object CreateJobScreen : Screen("createjob_screen", "Create Job")
-    object JobDetailsScreen : Screen("jobdetails_screen", "Job Details")
+    object JobDetailsScreen : Screen("jobdetails_screen", "Job Details", true)
     object MyJobHistoryScreen : Screen("myjobhistory_screen", "My Jobs")
     object ChatsScreen : Screen("chats_screen", "Chats")
 

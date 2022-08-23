@@ -4,7 +4,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.User
 import com.baec23.upcycler.repository.JobRepository
@@ -32,11 +31,17 @@ class JobDetailsViewModel @Inject constructor(
         when (event) {
             JobDetailsUiEvent.AddToFavoritesPressed -> {}
             JobDetailsUiEvent.ChatPressed -> {}
+            is JobDetailsUiEvent.EditPressed -> {
+
+            }
             is JobDetailsUiEvent.DeletePressed -> {
                 viewModelScope.launch {
                     jobRepository.deleteJob(currJob.value)
                     appEventChannel.send(AppEvent.NavigateUp)
                 }
+            }
+            JobDetailsUiEvent.LogoutPressed -> {
+                viewModelScope.launch { appEventChannel.send(AppEvent.Logout) }
             }
         }
     }
@@ -62,7 +67,7 @@ class JobDetailsViewModel @Inject constructor(
                 )
                 User()
             }
-            if(userRepository.currUser?.id == jobOwner.value.id)
+            if (userRepository.currUser?.id == jobOwner.value.id)
                 isMyJob.value = true
             jobDetailsScreenState.value = ScreenState.Ready
         }

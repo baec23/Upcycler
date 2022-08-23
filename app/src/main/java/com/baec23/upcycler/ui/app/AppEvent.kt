@@ -8,5 +8,6 @@ sealed class AppEvent {
     data class NavigateToAndClearBackstack(val screen: Screen) : AppEvent()
     data class NavigateToWithArgs(val screen: Screen, val args: String) : AppEvent()
     data class ShowSnackbar(val message: String) : AppEvent()
+    object Logout: AppEvent()
     object None : AppEvent()
 }
