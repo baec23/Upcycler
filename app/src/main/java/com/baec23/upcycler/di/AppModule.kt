@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.DialogNavigator
+import com.baec23.upcycler.repository.ChatRepository
 import com.baec23.upcycler.repository.DataStoreRepository
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
@@ -30,6 +31,11 @@ object AppModule {
     @Provides
     fun provideJobRepository(firestore: FirebaseFirestore, storage: FirebaseStorage) =
         JobRepository(firestore, storage)
+
+    @Singleton
+    @Provides
+    fun provideChatRepository(firestore: FirebaseFirestore, storage: FirebaseStorage) =
+        ChatRepository(firestore, storage)
 
     @Singleton
     @Provides

@@ -90,7 +90,7 @@ fun AppScreen(
                         BottomNavItem(
                             name = "Chats",
                             icon = Icons.Default.Face,
-                            screen = Screen.ChatsScreen
+                            screen = Screen.ChatListScreen
                         ),
                     ), onItemClick = {
                         navHostController.navigate(it.screen.route)

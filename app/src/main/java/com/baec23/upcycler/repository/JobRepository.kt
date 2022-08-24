@@ -94,8 +94,6 @@ class JobRepository @Inject constructor(
         }
     }
 
-
-
     private suspend fun getNewKey(): Int {
         var toReturn = 0L
         firestore.runTransaction { transaction ->

@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.User
+import com.baec23.upcycler.navigation.Screen
+import com.baec23.upcycler.repository.ChatRepository
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
 import com.baec23.upcycler.ui.app.AppEvent
@@ -19,6 +21,7 @@ import javax.inject.Inject
 class JobDetailsViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val jobRepository: JobRepository,
+    private val chatRepository: ChatRepository,
     private val appEventChannel: Channel<AppEvent>
 ) : ViewModel() {
 
@@ -30,7 +33,20 @@ class JobDetailsViewModel @Inject constructor(
     fun onEvent(event: JobDetailsUiEvent) {
         when (event) {
             JobDetailsUiEvent.AddToFavoritesPressed -> {}
-            JobDetailsUiEvent.ChatPressed -> {}
+            JobDetailsUiEvent.ChatPressed -> {
+                viewModelScope.launch {
+                    val currUser = userRepository.currUser!!
+                    val chatSessionId = chatRepository.getOrCreateChatSession(
+                        jobCreatorUserId = jobOwner.value.id,
+                        jobCreatorDisplayName = jobOwner.value.displayName,
+                        currUserId = currUser.id,
+                        currUserDisplayName = currUser.displayName,
+                        jobId = currJob.value.jobId,
+                        jobImageUrl = currJob.value.imageUris[0]
+                    )
+                    appEventChannel.send(AppEvent.NavigateToWithArgs(screen = Screen.ChatScreen, args = chatSessionId.toString()))
+                }
+            }
             is JobDetailsUiEvent.EditPressed -> {
 
             }

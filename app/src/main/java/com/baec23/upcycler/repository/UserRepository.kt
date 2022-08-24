@@ -72,7 +72,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    fun logout(){
+    fun logout() {
         currUser = null
     }
 

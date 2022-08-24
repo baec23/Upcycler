@@ -28,6 +28,7 @@ import coil.compose.SubcomposeAsyncImage
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.User
 import com.baec23.upcycler.ui.myjobhistory.HorizontalDividerLine
+import com.baec23.upcycler.ui.theme.Shapes
 import com.baec23.upcycler.util.DateConverter
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -65,8 +66,19 @@ fun JobDetailsScreen(
                         }
                     }
                 })
-        }
-    ) {
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = Shapes.medium,
+                onClick = { }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Call,
+                    contentDescription = "Start Chat"
+                )
+            }
+        }) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

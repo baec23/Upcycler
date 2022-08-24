@@ -38,7 +38,7 @@ class AppViewModel @Inject constructor(
                     "createjob_screen" -> _currNavScreen.value = Screen.CreateJobScreen
                     "jobdetails_screen/{jobId}" -> _currNavScreen.value = Screen.JobDetailsScreen
                     "myjobhistory_screen" -> _currNavScreen.value = Screen.MyJobHistoryScreen
-                    "chats_screen" -> _currNavScreen.value = Screen.ChatsScreen
+                    "chats_screen" -> _currNavScreen.value = Screen.ChatListScreen
                 }
             }
         }
