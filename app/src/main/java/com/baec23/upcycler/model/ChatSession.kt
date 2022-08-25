@@ -8,7 +8,7 @@ data class ChatSession(
     val workerDisplayName: String = "",
     val jobId: Int = 0,
     val jobImageUrl: String = "",
-    val mostRecentMessage: String = "",
+    var mostRecentMessage: String = "",
     val mostRecentMessageTimestamp: Long = 0,
-    val chatMessages: List<ChatMessage> = emptyList()
+    val participantUserIds: List<Int> = emptyList()
 )

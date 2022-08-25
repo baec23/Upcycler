@@ -8,7 +8,7 @@ sealed class Screen(val route: String, val displayName: String, val hasCustomTop
     object JobDetailsScreen : Screen("jobdetails_screen", "Job Details", true)
     object MyJobHistoryScreen : Screen("myjobhistory_screen", "My Jobs")
     object ChatListScreen : Screen("chatlist_screen", "Chats")
-    object ChatScreen : Screen("chat_screen", "Chat")
+    object ChatScreen : Screen("chat_screen", "Chat", true)
 
     fun withArgs(vararg args: String): String {
         return buildString {

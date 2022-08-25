@@ -43,7 +43,7 @@ class JobDetailsViewModel @Inject constructor(
                         currUserDisplayName = currUser.displayName,
                         jobId = currJob.value.jobId,
                         jobImageUrl = currJob.value.imageUris[0]
-                    )
+                    ).getOrDefault(0)
                     appEventChannel.send(AppEvent.NavigateToWithArgs(screen = Screen.ChatScreen, args = chatSessionId.toString()))
                 }
             }

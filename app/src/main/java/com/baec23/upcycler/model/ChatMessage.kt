@@ -1,9 +1,9 @@
 package com.baec23.upcycler.model
 
 data class ChatMessage(
-    val messageId: Int,
-    val userId: Int,
-    val userDisplayName: String,
-    val timestamp: Long,
-    val message: String
+    val sessionId: Int = 0,
+    val userId: Int = 0,
+    val userDisplayName: String = "",
+    val timestamp: Long = 0,
+    val message: String = ""
 )

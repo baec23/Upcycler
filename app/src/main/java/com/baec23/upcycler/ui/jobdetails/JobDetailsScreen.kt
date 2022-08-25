@@ -20,11 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.baec23.upcycler.R
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.User
 import com.baec23.upcycler.ui.myjobhistory.HorizontalDividerLine
@@ -68,15 +70,18 @@ fun JobDetailsScreen(
                 })
         },
         floatingActionButton = {
-            FloatingActionButton(
-                containerColor = MaterialTheme.colorScheme.primary,
-                shape = Shapes.medium,
-                onClick = { }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Call,
-                    contentDescription = "Start Chat"
-                )
+            if (!isMyJob) {
+                FloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    shape = Shapes.medium,
+                    onClick = { viewModel.onEvent(JobDetailsUiEvent.ChatPressed) }
+                ) {
+                    Icon(
+                        modifier = Modifier.height(35.dp),
+                        painter = painterResource(id = R.drawable.ic_chat),
+                        contentDescription = "Start Chat"
+                    )
+                }
             }
         }) {
         Column(
@@ -151,7 +156,10 @@ fun UserDetailsBar(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ElevatedCard(
+        HorizontalDividerLine()
+        Spacer(modifier = Modifier.height(5.dp))
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         ) {
             Row(
                 modifier = modifier.padding(10.dp),
@@ -172,6 +180,8 @@ fun UserDetailsBar(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(5.dp))
+        HorizontalDividerLine()
     }
 }
 

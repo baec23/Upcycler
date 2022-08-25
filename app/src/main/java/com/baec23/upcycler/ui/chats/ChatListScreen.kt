@@ -19,22 +19,23 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.baec23.upcycler.model.ChatSession
+import com.baec23.upcycler.ui.createjob.ImageCard
 import com.baec23.upcycler.ui.myjobhistory.HorizontalDividerLine
 import com.baec23.upcycler.util.DateConverter.convertTimestampToDate
 
 @Composable
 fun ChatListScreen(
-    chatListViewModel: ChatListViewModel = hiltViewModel()
+    viewModel: ChatListViewModel = hiltViewModel()
 ) {
-    val currUserId = chatListViewModel.currUser!!.id
-    val sessionList by chatListViewModel.chatListStateFlow.collectAsState()
+    val currUserId = viewModel.currUser!!.id
+    val sessionList by viewModel.chatSessions.collectAsState()
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(count = sessionList.size) {
+        items(count = sessionList.size) { index ->
             ChatListItem(
                 modifier = Modifier.height(100.dp),
-                chatSession = sessionList[it],
+                chatSession = sessionList[index],
                 currUserId = currUserId,
-                onClick = {}
+                onClick = { viewModel.onEvent(ChatListUiEvent.ChatSessionClicked(sessionList[index])) }
             )
         }
     }
@@ -57,7 +58,7 @@ fun ChatListItem(
         Row() {
             Icon(
                 modifier = Modifier
-                    .weight(0.2f)
+                    .weight(0.15f)
                     .fillMaxSize()
                     .padding(10.dp),
                 imageVector = Icons.Default.AccountCircle,
@@ -75,7 +76,7 @@ fun ChatListItem(
                 )
                 {
                     Text(
-                        text = if (chatSession.jobCreatorUserId == currUserId) chatSession.jobCreatorDisplayName else chatSession.workerDisplayName,
+                        text = if (chatSession.jobCreatorUserId == currUserId) chatSession.workerDisplayName else chatSession.jobCreatorDisplayName,
                         style = MaterialTheme.typography.titleMedium,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1
@@ -97,20 +98,21 @@ fun ChatListItem(
                     maxLines = 1
                 )
             }
-            SubcomposeAsyncImage(
-                modifier = Modifier.weight(0.2f),
-                model = chatSession.jobImageUrl,
-                contentDescription = null,
-                loading = {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                },
-                contentScale = ContentScale.Fit
-            )
+            ImageCard(modifier = Modifier.weight(0.25f)) {
+                SubcomposeAsyncImage(
+                    model = chatSession.jobImageUrl,
+                    contentDescription = null,
+                    loading = {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    },
+                    contentScale = ContentScale.FillWidth
+                )
+            }
         }
     }
     Spacer(modifier = Modifier.height(5.dp))
@@ -128,8 +130,7 @@ fun ChatSessionPreview() {
         jobId = 1,
         jobImageUrl = "https://firebasestorage.googleapis.com/v0/b/upcycler-c570d.appspot.com/o/jobs%2Fjob_11_0?alt=media&token=bf747a5e-1b23-4589-bbc4-1bf0da5de8b8",
         mostRecentMessage = "This is a test recent chat message",
-        mostRecentMessageTimestamp = 1660712928898,
-        chatMessages = listOf()
+        mostRecentMessageTimestamp = 1660712928898
     )
     ChatListItem(
         modifier = Modifier

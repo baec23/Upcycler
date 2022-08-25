@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.baec23.upcycler.ui.chats.ChatListScreen
+import com.baec23.upcycler.ui.chats.ChatScreen
 import com.baec23.upcycler.ui.createjob.CreateJobScreen
 import com.baec23.upcycler.ui.jobdetails.JobDetailsScreen
 import com.baec23.upcycler.ui.login.LoginScreen
@@ -37,6 +38,15 @@ fun Navigation(
         }
         composable(route = Screen.ChatListScreen.route) {
             ChatListScreen()
+        }
+        composable(route = Screen.ChatScreen.route + "/{chatSessionId}",
+            arguments = listOf(
+                navArgument("chatSessionId") {
+                    type = NavType.IntType
+                    nullable = false
+                }
+            )) {
+            ChatScreen()
         }
         composable(
             route = Screen.JobDetailsScreen.route + "/{jobId}",
