@@ -73,7 +73,7 @@ class LoginViewModel @Inject constructor(
             val result = userRepository.tryLogin(loginId, password)
             when {
                 result.isSuccess -> {
-                    dataStoreRepository.putInt(DSKEY_SAVED_USER_ID, result.getOrDefault(User()).id)
+                    dataStoreRepository.putLong(DSKEY_SAVED_USER_ID, result.getOrDefault(User()).id)
                     appEventChannel.send(
                         AppEvent.NavigateToAndClearBackstack(
                             Screen.MainScreen

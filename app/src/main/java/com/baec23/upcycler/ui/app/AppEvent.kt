@@ -10,4 +10,5 @@ sealed class AppEvent {
     data class ShowSnackbar(val message: String) : AppEvent()
     object Logout: AppEvent()
     object None : AppEvent()
+    object UserInteraction: AppEvent()
 }

@@ -37,7 +37,7 @@ class LauncherViewModel @Inject constructor(
                 }
             }
 
-            val savedUserId = dataStoreRepository.getInt(DSKEY_SAVED_USER_ID)
+            val savedUserId = dataStoreRepository.getLong(DSKEY_SAVED_USER_ID)
 
             if (savedUserId != null) {
                 val loginResult = userRepository.trySavedLogin(savedUserId)

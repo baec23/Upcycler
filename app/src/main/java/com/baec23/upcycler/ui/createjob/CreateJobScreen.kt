@@ -101,7 +101,9 @@ fun CreateJobScreen(
                 value = jobDetails,
                 onValueChange = { viewModel.onEvent(CreateJobUiEvent.DetailsChanged(it)) })
             Spacer(modifier = Modifier.height(25.dp))
-            Button(onClick = { viewModel.onEvent(CreateJobUiEvent.SubmitPressed) }) {
+            Button(
+                enabled = viewModel.canCreate.value,
+                onClick = { viewModel.onEvent(CreateJobUiEvent.SubmitPressed) }) {
                 Text(text = "Create")
             }
         }

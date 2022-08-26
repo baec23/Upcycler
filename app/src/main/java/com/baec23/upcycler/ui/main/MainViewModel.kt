@@ -6,6 +6,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
@@ -15,19 +16,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     userRepository: UserRepository,
-    jobRepository: JobRepository,
+    private val jobRepository: JobRepository,
     private val appEventChannel: Channel<AppEvent>
 ) : ViewModel() {
 
     val searchFormState: MutableState<String> = mutableStateOf("")
-    val jobList: StateFlow<List<Job>> = jobRepository.jobsStateFlow
-    private val _filteredJobList: MutableStateFlow<List<Job>> = MutableStateFlow(jobList.value)
+    private val _filteredJobList: MutableStateFlow<List<Job>> = MutableStateFlow(emptyList())
     val filteredJobList: StateFlow<List<Job>> = _filteredJobList
 
     fun onEvent(event: MainUiEvent) {
@@ -35,7 +36,7 @@ class MainViewModel @Inject constructor(
             is MainUiEvent.SearchFormChanged -> {
                 searchFormState.value = event.searchText
                 viewModelScope.launch {
-                    filterJobsBySearch()
+                    filterJobsBySearch(jobRepository.jobsStateFlow.value)
                 }
             }
             is MainUiEvent.JobSelected -> {
@@ -58,13 +59,21 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun filterJobsBySearch() {
-        var filteredJobs = jobList.value
+    private fun filterJobsBySearch(jobList: List<Job>) {
+        var filteredJobs = jobList
         if (searchFormState.value.isNotEmpty()) {
             filteredJobs = filteredJobs.filter {
                 it.title.toLowerCase(locale = Locale.current).contains(searchFormState.value.toLowerCase(locale = Locale.current))
             }
         }
         _filteredJobList.value = filteredJobs
+    }
+
+    init {
+        viewModelScope.launch {
+            jobRepository.jobsStateFlow.collect{
+                filterJobsBySearch(it)
+            }
+        }
     }
 }

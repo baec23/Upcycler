@@ -2,10 +2,7 @@ package com.baec23.upcycler.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.baec23.upcycler.navigation.Screen
 import dagger.hilt.android.scopes.ActivityScoped
@@ -25,8 +22,15 @@ class DataStoreRepository @Inject constructor(
         }
     }
 
-    suspend fun putInt(key: String, value: Int) {
-        val preferencesKey = intPreferencesKey(key)
+//    suspend fun putInt(key: String, value: Int) {
+//        val preferencesKey = intPreferencesKey(key)
+//        context.dataStore.edit { preferences ->
+//            preferences[preferencesKey] = value
+//        }
+//    }
+
+    suspend fun putLong(key: String, value: Long){
+        val preferencesKey = longPreferencesKey(key)
         context.dataStore.edit { preferences ->
             preferences[preferencesKey] = value
         }
@@ -50,9 +54,20 @@ class DataStoreRepository @Inject constructor(
         }
     }
 
-    suspend fun getInt(key: String): Int? {
+//    suspend fun getInt(key: String): Int? {
+//        return try {
+//            val preferencesKey = intPreferencesKey(key)
+//            val preferences = context.dataStore.data.first()
+//            preferences[preferencesKey]
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            null
+//        }
+//    }
+
+    suspend fun getLong(key: String): Long? {
         return try {
-            val preferencesKey = intPreferencesKey(key)
+            val preferencesKey = longPreferencesKey(key)
             val preferences = context.dataStore.data.first()
             preferences[preferencesKey]
         } catch (e: Exception) {

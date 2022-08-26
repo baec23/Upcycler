@@ -1,5 +1,6 @@
 package com.baec23.upcycler.ui.chats
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.baec23.upcycler.model.ChatSession
@@ -9,8 +10,10 @@ import com.baec23.upcycler.repository.ChatRepository
 import com.baec23.upcycler.repository.JobRepository
 import com.baec23.upcycler.repository.UserRepository
 import com.baec23.upcycler.ui.app.AppEvent
+import com.baec23.upcycler.util.TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,7 +26,8 @@ class ChatListViewModel @Inject constructor(
     private val appEventChannel: Channel<AppEvent>
 ) : ViewModel() {
     var currUser = userRepository.currUser
-    lateinit var chatSessions: StateFlow<List<ChatSession>>
+    private val _chatSessions: MutableStateFlow<List<ChatSession>> = MutableStateFlow(emptyList())
+    val chatSessions: StateFlow<List<ChatSession>> = _chatSessions
 
     fun onEvent(event: ChatListUiEvent) {
         when (event) {
@@ -37,24 +41,18 @@ class ChatListViewModel @Inject constructor(
                     )
                 }
             }
-            ChatListUiEvent.ComposableDestroyed -> chatRepository.cancelChatSessionListenerRegistration()
         }
-    }
-
-    fun getJobImageUrl(jobId: Int): String {
-        var job: Job? = null
-        viewModelScope.launch {
-            job = jobRepository.getJobById(jobId).getOrNull()
-        }
-        job?.let {
-            return job!!.imageUris[0]
-        }
-        return ""
     }
 
     init {
+        Log.d(TAG, "ChatListViewModel: INIT! - $this")
         currUser?.let {
-            chatSessions = chatRepository.registerChatSessionListener(currUser!!.id)
+            viewModelScope.launch {
+                chatRepository.registerChatSessionListener(currUser!!.id).collect {
+                    Log.d(TAG, "ChatListViewModel: LISTENER CALLBACK! - ${this@ChatListViewModel}")
+                    _chatSessions.value = it
+                }
+            }
         }
     }
 }

@@ -117,6 +117,7 @@ fun TopBar(
     Row(
         modifier = modifier
             .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(start = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

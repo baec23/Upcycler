@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
@@ -18,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
@@ -32,12 +34,6 @@ import com.baec23.upcycler.util.ScreenState
 fun ChatScreen(
     viewModel: ChatViewModel = hiltViewModel(),
 ) {
-    DisposableEffect(true) {
-        onDispose {
-            viewModel.onEvent(ChatUiEvent.ComposableDestroyed)
-        }
-    }
-
     if (viewModel.chatScreenState.value == ScreenState.Busy)
         ProgressSpinner()
     else {
@@ -49,7 +45,7 @@ fun ChatScreen(
                 viewModel.currChatSession!!.workerDisplayName
             else
                 viewModel.currChatSession!!.jobCreatorDisplayName
-        //TopBar
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
@@ -58,6 +54,9 @@ fun ChatScreen(
                     screenName = otherUserDisplayName,
                     onMenuItemClicked = { clickedMenuItem ->
                         when (clickedMenuItem) {
+                            DropdownMenuSelection.Leave -> {
+                                viewModel.onEvent(ChatUiEvent.LeaveChatSessionClicked)
+                            }
                             DropdownMenuSelection.Logout -> {
                                 viewModel.onEvent(ChatUiEvent.LogoutClicked)
                             }
@@ -66,6 +65,7 @@ fun ChatScreen(
             },
             bottomBar = {
                 ChatInputSection(
+                    modifier = Modifier.height(60.dp),
                     value = viewModel.chatInputFormState.value.chatInputText,
                     onTextChanged = {
                         viewModel.onEvent(ChatUiEvent.ChatInputTextChanged(it))
@@ -88,7 +88,10 @@ fun ChatScreen(
                 ChatMessagesSection(
                     modifier = Modifier.fillMaxWidth(),
                     messages = chatMessages.value,
-                    currUserId = viewModel.currUser!!.id
+                    currUserId = viewModel.currUser!!.id,
+                    onMessageRead = { message ->
+                        viewModel.onEvent(ChatUiEvent.ChatMessageRead(message))
+                    }
                 )
             }
         }
@@ -105,6 +108,7 @@ private fun ChatTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.background)
             .padding(start = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -138,6 +142,19 @@ private fun ChatDropdownMenuContent(
     modifier: Modifier = Modifier,
     onMenuItemClicked: (DropdownMenuSelection) -> Unit
 ) {
+    DropdownMenuItem(
+        modifier = modifier.background(MaterialTheme.colorScheme.primary),
+        colors = MenuDefaults.itemColors(
+            textColor = MaterialTheme.colorScheme.onPrimary,
+            leadingIconColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.Delete, contentDescription = "Leave")
+        },
+        text = {
+            Text("Leave")
+        }, onClick = { onMenuItemClicked(DropdownMenuSelection.Leave) }
+    )
     DropdownMenuItem(
         modifier = modifier.background(MaterialTheme.colorScheme.primary),
         colors = MenuDefaults.itemColors(
@@ -190,7 +207,8 @@ private fun JobDetailsSection(
 private fun ChatMessagesSection(
     modifier: Modifier = Modifier,
     messages: List<ChatMessage>,
-    currUserId: Int
+    currUserId: Long,
+    onMessageRead: (ChatMessage) -> Unit
 ) {
     val state = rememberLazyListState()
     LaunchedEffect(messages) {
@@ -205,7 +223,10 @@ private fun ChatMessagesSection(
         items(messages.size) { index ->
             ChatMessage(
                 message = messages[index],
-                isMyMessage = messages[index].userId == currUserId
+                isMyMessage = messages[index].userId == currUserId,
+                isRead = messages[index].hasBeenRead,
+                isLast = index == messages.size - 1,
+                onMessageRead = onMessageRead,
             )
             if (index < messages.size - 1) {
                 Spacer(modifier = Modifier.height(5.dp))
@@ -218,27 +239,53 @@ private fun ChatMessagesSection(
 private fun ChatMessage(
     message: ChatMessage,
     isMyMessage: Boolean,
+    isRead: Boolean,
+    isLast: Boolean,
+    onMessageRead: (ChatMessage) -> Unit,
 ) {
     val cardColor =
         if (isMyMessage)
             MaterialTheme.colorScheme.primary
         else
             MaterialTheme.colorScheme.background
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = if (isMyMessage) Alignment.CenterEnd else Alignment.CenterStart
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        ElevatedCard(
-            colors = CardDefaults.cardColors(containerColor = cardColor),
-            elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
-        ) {
+        Row {
+            if (isMyMessage) {
+                Spacer(modifier = Modifier.width(50.dp))
+            }
             Box(
-                modifier = Modifier
-                    .padding(10.dp)
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = if (isMyMessage) Alignment.CenterEnd else Alignment.CenterStart
             ) {
-                Text(text = message.message)
+                Column(horizontalAlignment = Alignment.End) {
+                    ElevatedCard(
+                        colors = CardDefaults.cardColors(containerColor = cardColor),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(10.dp)
+                        ) {
+                            Text(text = message.message)
+                        }
+                    }
+                    if (isMyMessage && isLast && isRead)
+                        Text(
+                            text = "Read",
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.End
+                        )
+                }
+
+            }
+            if (!isMyMessage) {
+                Spacer(modifier = Modifier.width(50.dp))
             }
         }
+        if (!isMyMessage && !isRead)
+            onMessageRead(message)
     }
 }
 
@@ -251,7 +298,7 @@ private fun ChatInputSection(
 ) {
     Surface() {
         Row(
-            modifier = Modifier.padding(5.dp),
+            modifier = modifier.padding(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
@@ -284,5 +331,6 @@ private fun ChatInputSection(
 }
 
 private sealed class DropdownMenuSelection {
+    object Leave : DropdownMenuSelection()
     object Logout : DropdownMenuSelection()
 }

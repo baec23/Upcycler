@@ -40,7 +40,7 @@ class UserRepository @Inject constructor(
         return Result.failure(Exception("No User Found for LoginId: $loginId"))
     }
 
-    suspend fun trySavedLogin(savedUserId: Int): Result<User> {
+    suspend fun trySavedLogin(savedUserId: Long): Result<User> {
         val savedUser = getUserById(savedUserId).getOrElse {
             return Result.failure(it)
         }
@@ -76,7 +76,7 @@ class UserRepository @Inject constructor(
         currUser = null
     }
 
-    suspend fun getUserById(userId: Int): Result<User> {
+    suspend fun getUserById(userId: Long): Result<User> {
         val result = usersReference.whereEqualTo("id", userId).get().await().documents
         if (result.size == 1) {
             val toReturn = result[0].toObject(User::class.java)
@@ -95,7 +95,7 @@ class UserRepository @Inject constructor(
         return documentSnapshot.isNotEmpty()
     }
 
-    private suspend fun getNewKey(): Int {
+    private suspend fun getNewKey(): Long {
         var toReturn = 0L
         firestore.runTransaction { transaction ->
             val snapshot = transaction.get(keyStoreReference)
@@ -103,10 +103,10 @@ class UserRepository @Inject constructor(
             val newValue = snapshot.getLong("value")!! + 1
             transaction.update(keyStoreReference, "value", newValue)
         }.await()
-        return toReturn.toInt()
+        return toReturn
     }
 
-    private suspend fun updateUserLastLogin(userId: Int) {
+    private suspend fun updateUserLastLogin(userId: Long) {
         val userDocSnap =
             usersReference.whereEqualTo("id", userId).get().await().documents[0]
         if (userDocSnap != null) {

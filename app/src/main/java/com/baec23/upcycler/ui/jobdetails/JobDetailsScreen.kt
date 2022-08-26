@@ -40,7 +40,7 @@ import com.google.accompanist.pager.rememberPagerState
 @Composable
 fun JobDetailsScreen(
     viewModel: JobDetailsViewModel = hiltViewModel(),
-    jobId: Int
+    jobId: Long
 ) {
     LaunchedEffect(true) {
         viewModel.setJobId(jobId)
@@ -255,6 +255,7 @@ fun JobDetailsTopBar(
     Row(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(start = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

@@ -53,6 +53,7 @@ class JobDetailsViewModel @Inject constructor(
             is JobDetailsUiEvent.DeletePressed -> {
                 viewModelScope.launch {
                     jobRepository.deleteJob(currJob.value)
+                    chatRepository.deleteJobChats(currJob.value.jobId)
                     appEventChannel.send(AppEvent.NavigateUp)
                 }
             }
@@ -62,7 +63,7 @@ class JobDetailsViewModel @Inject constructor(
         }
     }
 
-    fun setJobId(jobId: Int) {
+    fun setJobId(jobId: Long) {
         jobDetailsScreenState.value = ScreenState.Busy
         viewModelScope.launch {
             val jobResult = jobRepository.getJobById(jobId)

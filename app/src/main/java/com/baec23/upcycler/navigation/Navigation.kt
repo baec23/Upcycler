@@ -42,7 +42,7 @@ fun Navigation(
         composable(route = Screen.ChatScreen.route + "/{chatSessionId}",
             arguments = listOf(
                 navArgument("chatSessionId") {
-                    type = NavType.IntType
+                    type = NavType.LongType
                     nullable = false
                 }
             )) {
@@ -52,12 +52,12 @@ fun Navigation(
             route = Screen.JobDetailsScreen.route + "/{jobId}",
             arguments = listOf(
                 navArgument("jobId") {
-                    type = NavType.IntType
+                    type = NavType.LongType
                     nullable = false
                 }
             )
         ) {
-            JobDetailsScreen(jobId = it.arguments?.getInt("jobId") ?: 0)
+            JobDetailsScreen(jobId = it.arguments?.getLong("jobId") ?: 0)
         }
     }
 }

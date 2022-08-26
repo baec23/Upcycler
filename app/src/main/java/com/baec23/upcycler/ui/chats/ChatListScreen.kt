@@ -27,6 +27,7 @@ import com.baec23.upcycler.util.DateConverter.convertTimestampToDate
 fun ChatListScreen(
     viewModel: ChatListViewModel = hiltViewModel()
 ) {
+
     val currUserId = viewModel.currUser!!.id
     val sessionList by viewModel.chatSessions.collectAsState()
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -45,7 +46,7 @@ fun ChatListScreen(
 fun ChatListItem(
     modifier: Modifier = Modifier,
     chatSession: ChatSession,
-    currUserId: Int,
+    currUserId: Long,
     onClick: (ChatSession) -> Unit
 ) {
     HorizontalDividerLine()
@@ -55,7 +56,7 @@ fun ChatListItem(
         onClick = { onClick(chatSession) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
-        Row() {
+        Row {
             Icon(
                 modifier = Modifier
                     .weight(0.15f)

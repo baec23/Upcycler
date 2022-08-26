@@ -27,18 +27,26 @@ class ChatRepository @Inject constructor(
 ) {
     private val chatSessionReference: CollectionReference = firestore.collection("chats")
     private val chatReference: CollectionReference = firestore.collection("chatMessages")
-    private val keyStoreReference: DocumentReference =
+    private val chatSessionKeystoreReference: DocumentReference =
         firestore.collection("keys").document("chatSessions")
+    private val chatMessageKeystoreReference: DocumentReference =
+        firestore.collection("keys").document("chatMessages")
     private var chatSessionListenerRegistration: ListenerRegistration? = null
+    private var chatSessionListenerUserId: Long? = null
     private var chatListenerRegistration: ListenerRegistration? = null
+    private var chatListenerSessionId: Long? = null
 
     private val _chatSessionsStateFlow = MutableStateFlow<List<ChatSession>>(emptyList())
     private val _chatMessagesStateFlow = MutableStateFlow<List<ChatMessage>>(emptyList())
-    private var currChatSessionId: Int? = null
+    private var currChatSessionId: Long? = null
 
-    fun registerChatSessionListener(userId: Int): StateFlow<List<ChatSession>> {
+    fun registerChatSessionListener(userId: Long): StateFlow<List<ChatSession>> {
+        if (chatSessionListenerUserId == userId)
+            return _chatSessionsStateFlow.asStateFlow()
+        //cancelChatSessionListenerRegistration()
         chatSessionListenerRegistration =
             chatSessionReference.whereArrayContains("participantUserIds", userId)
+                .whereNotEqualTo("mostRecentMessage", "")
                 .addSnapshotListener { documentSnapshots, error ->
                     if (error == null) {
                         val toReturn: MutableList<ChatSession> = mutableListOf()
@@ -46,23 +54,30 @@ class ChatRepository @Inject constructor(
                             toReturn.add(document.toObject(ChatSession::class.java))
                         }
                         _chatSessionsStateFlow.update { toReturn }
+                    } else {
+                        Log.d(TAG, "registerChatSessionListener: ${error.message}")
                     }
                 }
+        chatSessionListenerUserId = userId
         return _chatSessionsStateFlow.asStateFlow()
     }
 
-    fun cancelChatSessionListenerRegistration() {
+    private fun cancelChatSessionListenerRegistration() {
         chatSessionListenerRegistration?.let { it.remove() }
-            .also { chatSessionListenerRegistration = null }
+            .also {
+                chatSessionListenerRegistration = null
+                chatSessionListenerUserId = null
+            }
     }
 
-    fun registerChatListener(sessionId: Int): StateFlow<List<ChatMessage>> {
+    fun registerChatListener(sessionId: Long): StateFlow<List<ChatMessage>> {
         Log.d(TAG, "registerChatListener: Registering chat listener for sessionId: $sessionId")
-        cancelChatListenerRegistration()
+        if (chatListenerSessionId == sessionId)
+            return _chatMessagesStateFlow.asStateFlow()
+        //cancelChatListenerRegistration()
         chatListenerRegistration =
             chatReference.whereEqualTo("sessionId", sessionId)
                 .addSnapshotListener { documentSnapshots, error ->
-                    Log.d(TAG, "registerChatListener: Snapshot Listener Triggered")
                     if (error == null) {
                         val messages: MutableList<ChatMessage> = mutableListOf()
                         documentSnapshots?.forEach { document ->
@@ -72,24 +87,61 @@ class ChatRepository @Inject constructor(
                             it.timestamp
                         }
                         _chatMessagesStateFlow.update { messages }
+                    } else {
+                        Log.d(TAG, "registerChatListener: ${error.message}")
                     }
                 }
+        chatListenerSessionId = sessionId
         currChatSessionId = sessionId
         return _chatMessagesStateFlow.asStateFlow()
     }
 
-    fun cancelChatListenerRegistration() {
+    private fun cancelChatListenerRegistration() {
         Log.d(TAG, "cancelChatListenerRegistration: Removing listener")
         chatListenerRegistration?.let { it.remove() }
             .also {
                 chatListenerRegistration = null
                 currChatSessionId = null
+                chatListenerSessionId = null
             }
     }
 
     fun addChatMessage(chatMessage: ChatMessage) {
-        chatReference.document().set(chatMessage)
-        CoroutineScope(Dispatchers.IO).launch { updateChatSessionRecentMessage(chatMessage = chatMessage) }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val newKey = getNewChatMessageKey()
+            val toAdd = chatMessage.copy(messageId = newKey)
+            chatReference.document().set(toAdd)
+            updateChatSessionRecentMessage(chatMessage = toAdd)
+        }
+
+    }
+
+    suspend fun deleteJobChats(jobId: Long) {
+        val documents = chatSessionReference.whereEqualTo("jobId", jobId).get().await().documents
+        val sessionIds = documents.map { it.toObject(ChatSession::class.java) }
+        sessionIds.forEach { chatSession ->
+            chatSession?.let {
+                deleteChatMessagesForSession(chatSession.chatSessionId)
+            }
+        }
+        documents.forEach {
+            it?.reference?.delete()
+        }
+    }
+
+    suspend fun deleteChatSession(sessionId: Long) {
+        deleteChatMessagesForSession(sessionId)
+        val session =
+            chatSessionReference.whereEqualTo("chatSessionId", sessionId).get().await().documents[0]
+        session.reference.delete()
+    }
+
+    private suspend fun deleteChatMessagesForSession(sessionId: Long) {
+        val documents = chatReference.whereEqualTo("sessionId", sessionId).get().await().documents
+        documents.forEach {
+            it?.reference?.delete()
+        }
     }
 
     private suspend fun updateChatSessionRecentMessage(chatMessage: ChatMessage) {
@@ -110,22 +162,24 @@ class ChatRepository @Inject constructor(
     }
 
     suspend fun getOrCreateChatSession(
-        jobCreatorUserId: Int,
+        jobCreatorUserId: Long,
         jobCreatorDisplayName: String,
-        currUserId: Int,
+        currUserId: Long,
         currUserDisplayName: String,
-        jobId: Int,
+        jobId: Long,
         jobImageUrl: String
-    ): Result<Int> {
+    ): Result<Long> {
         try {
             val existingChatSession = chatSessionReference
                 .whereEqualTo("jobCreatorUserId", jobCreatorUserId)
                 .whereEqualTo("workerUserId", currUserId)
+                .whereEqualTo("jobId", jobId)
                 .get()
                 .await()
                 .documents
             if (existingChatSession.isNotEmpty()) {
-                val chatSessionId = existingChatSession[0].getDouble("chatSessionId")?.toInt() ?: -1
+                val chatSessionId =
+                    existingChatSession[0].getDouble("chatSessionId")?.toLong() ?: -1
                 return if (chatSessionId < 0)
                     Result.failure(Exception("chatSessionId error"))
                 else
@@ -149,20 +203,40 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun getChatSessionById(sessionId: Int): ChatSession? {
+    suspend fun markChatMessageAsRead(messageId: Long) {
+        val docs = chatReference.whereEqualTo("messageId", messageId).get().await()
+        if (!docs.isEmpty) {
+            val message =
+                chatReference.whereEqualTo("messageId", messageId).get().await().documents[0]
+            message.reference.update("hasBeenRead", true)
+        }
+    }
+
+    suspend fun getChatSessionById(sessionId: Long): ChatSession? {
         val toReturn =
             chatSessionReference.whereEqualTo("chatSessionId", sessionId).get().await().documents[0]
         return toReturn.toObject(ChatSession::class.java)
     }
 
-    private suspend fun getNewChatSessionKey(): Int {
+    private suspend fun getNewChatSessionKey(): Long {
         var toReturn = 0L
         firestore.runTransaction { transaction ->
-            val snapshot = transaction.get(keyStoreReference)
+            val snapshot = transaction.get(chatSessionKeystoreReference)
             toReturn = snapshot.getLong("value")!!
             val newValue = snapshot.getLong("value")!! + 1
-            transaction.update(keyStoreReference, "value", newValue)
+            transaction.update(chatSessionKeystoreReference, "value", newValue)
         }.await()
-        return toReturn.toInt()
+        return toReturn
+    }
+
+    private suspend fun getNewChatMessageKey(): Long {
+        var toReturn = 0L
+        firestore.runTransaction { transaction ->
+            val snapshot = transaction.get(chatMessageKeystoreReference)
+            toReturn = snapshot.getLong("value")!!
+            val newValue = snapshot.getLong("value")!! + 1
+            transaction.update(chatMessageKeystoreReference, "value", newValue)
+        }.await()
+        return toReturn
     }
 }

@@ -18,7 +18,7 @@ import com.baec23.upcycler.util.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,7 +27,7 @@ class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val userRepository: UserRepository,
     private val jobRepository: JobRepository,
-    private val appEventChannel: Channel<AppEvent>,
+    val appEventChannel: Channel<AppEvent>,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -59,26 +59,44 @@ class ChatViewModel @Inject constructor(
                 chatRepository.addChatMessage(toAdd)
                 _chatInputFormState.value = _chatInputFormState.value.copy(chatInputText = "")
             }
+            ChatUiEvent.LeaveChatSessionClicked -> {
+                currChatSession?.let {
+                    viewModelScope.launch {
+                        chatRepository.deleteChatSession(currChatSession!!.chatSessionId)
+                        appEventChannel.send(AppEvent.NavigateUp)
+                    }
+                }
+            }
             ChatUiEvent.LogoutClicked -> {
                 viewModelScope.launch { appEventChannel.send(AppEvent.Logout) }
             }
-            ChatUiEvent.ComposableDestroyed -> chatRepository.cancelChatListenerRegistration()
+            is ChatUiEvent.ChatMessageRead -> {
+                markAsRead(event.chatMessage)
+            }
         }
     }
 
     init {
         _chatScreenState.value = ScreenState.Busy
-        val sessionId = savedStateHandle.get<Int>("chatSessionId")
+        val sessionId = savedStateHandle.get<Long>("chatSessionId")
         sessionId?.let {
             viewModelScope.launch {
                 currUser = userRepository.currUser
                 currChatSession = chatRepository.getChatSessionById(sessionId)
                 currChatSession?.let {
                     currJob = jobRepository.getJobById(currChatSession!!.jobId).getOrNull()
-                    chatMessages = chatRepository.registerChatListener(currChatSession!!.chatSessionId)
+                    chatMessages =
+                        chatRepository.registerChatListener(currChatSession!!.chatSessionId)
                 }
                 _chatScreenState.value = ScreenState.Ready
             }
+        }
+
+    }
+
+    private fun markAsRead(message: ChatMessage) {
+        viewModelScope.launch {
+            chatRepository.markChatMessageAsRead(message.messageId)
         }
     }
 }

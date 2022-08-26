@@ -2,6 +2,7 @@ package com.baec23.upcycler.ui.createjob
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -22,22 +23,32 @@ class CreateJobViewModel @Inject constructor(
     private val jobRepository: JobRepository,
     private val appEventChannel: Channel<AppEvent>
 ) : ViewModel() {
-    val screenState: MutableState<ScreenState> =
+
+    private val _screenState: MutableState<ScreenState> =
         mutableStateOf(ScreenState.Ready)
-    val addedImages: MutableList<Bitmap> = mutableStateListOf()
-    val titleFormState: MutableState<String> = mutableStateOf("")
-    val detailsFormState: MutableState<String> = mutableStateOf("")
+    val screenState: State<ScreenState> = _screenState
+    private val _addedImages: MutableList<Bitmap> = mutableStateListOf()
+    val addedImages: List<Bitmap> = _addedImages
+    private val _titleFormState: MutableState<String> = mutableStateOf("")
+    val titleFormState: State<String> = _titleFormState
+    private val _detailsFormState: MutableState<String> = mutableStateOf("")
+    val detailsFormState: State<String> = _detailsFormState
+    private val _canCreate: MutableState<Boolean> = mutableStateOf(false)
+    val canCreate: State<Boolean> = _canCreate
 
     fun onEvent(event: CreateJobUiEvent) {
         when (event) {
             is CreateJobUiEvent.BitmapAdded -> {
-                addedImages.add(event.addedBitmap)
+                _addedImages.add(event.addedBitmap)
+                updateCanCreate()
             }
             is CreateJobUiEvent.TitleChanged -> {
-                titleFormState.value = event.titleText
+                _titleFormState.value = event.titleText
+                updateCanCreate()
             }
             is CreateJobUiEvent.DetailsChanged -> {
-                detailsFormState.value = event.detailsText
+                _detailsFormState.value = event.detailsText
+                updateCanCreate()
             }
             CreateJobUiEvent.SubmitPressed -> {
                 tryCreate()
@@ -46,27 +57,32 @@ class CreateJobViewModel @Inject constructor(
     }
 
     private fun tryCreate() {
-        screenState.value = ScreenState.Busy
+        _screenState.value = ScreenState.Busy
         val currUserId = userRepository.currUser?.id
         viewModelScope.launch {
             currUserId?.let {
                 val result = jobRepository.tryCreateJob(
-                    images = addedImages,
-                    jobTitle = titleFormState.value,
-                    jobDetails = detailsFormState.value,
+                    images = _addedImages,
+                    jobTitle = _titleFormState.value,
+                    jobDetails = _detailsFormState.value,
                     creatorId = it,
                 )
                 when {
                     result.isSuccess -> {
                         viewModelScope.launch { appEventChannel.send(AppEvent.NavigateTo(Screen.MainScreen)) }
-                        screenState.value = ScreenState.Ready
+                        _screenState.value = ScreenState.Ready
                     }
                     else -> {
                         viewModelScope.launch { appEventChannel.send(AppEvent.ShowSnackbar("Couldn't Create Job!")) }
-                        screenState.value = ScreenState.Ready
+                        _screenState.value = ScreenState.Ready
                     }
                 }
             }
         }
+    }
+
+    private fun updateCanCreate() {
+        _canCreate.value =
+            _detailsFormState.value.isNotEmpty() && _titleFormState.value.isNotEmpty() && _addedImages.isNotEmpty()
     }
 }

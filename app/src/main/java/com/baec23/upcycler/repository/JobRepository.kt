@@ -1,9 +1,11 @@
 package com.baec23.upcycler.repository
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.datastore.preferences.preferencesDataStore
 import com.baec23.upcycler.model.Job
 import com.baec23.upcycler.model.JobStatus
+import com.baec23.upcycler.util.TAG
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,7 +28,7 @@ class JobRepository @Inject constructor(
     private val _jobsStateFlow = MutableStateFlow<List<Job>>(emptyList())
     val jobsStateFlow = _jobsStateFlow.asStateFlow()
 
-    suspend fun getJobById(jobId: Int): Result<Job> {
+    suspend fun getJobById(jobId: Long): Result<Job> {
         val result = jobsReference.whereEqualTo("jobId", jobId).get().await().documents
         if(result.size == 1){
             val toReturn = result[0].toObject(Job::class.java)
@@ -45,7 +47,7 @@ class JobRepository @Inject constructor(
         images: List<Bitmap>,
         jobTitle: String,
         jobDetails: String,
-        creatorId: Int,
+        creatorId: Long,
     ): Result<String> {
         val jobId = getNewKey()
         val uriList = uploadBitmaps(jobId, images)
@@ -66,7 +68,7 @@ class JobRepository @Inject constructor(
         }
     }
 
-    private suspend fun uploadBitmaps(jobId: Int, toUpload: List<Bitmap>): List<String> {
+    private suspend fun uploadBitmaps(jobId: Long, toUpload: List<Bitmap>): List<String> {
 
         val toReturn: MutableList<String> = mutableListOf()
         toUpload.forEachIndexed { i, bitmap ->
@@ -91,10 +93,13 @@ class JobRepository @Inject constructor(
                 _jobsStateFlow.update { toReturn }
                 callback.invoke("Success")
             }
+            else{
+                Log.d(TAG, "registerJobListListener: ${error.message}")
+            }
         }
     }
 
-    private suspend fun getNewKey(): Int {
+    private suspend fun getNewKey(): Long {
         var toReturn = 0L
         firestore.runTransaction { transaction ->
             val snapshot = transaction.get(keyStoreReference)
@@ -102,6 +107,6 @@ class JobRepository @Inject constructor(
             val newValue = snapshot.getLong("value")!! + 1
             transaction.update(keyStoreReference, "value", newValue)
         }.await()
-        return toReturn.toInt()
+        return toReturn
     }
 }
